@@ -4,6 +4,8 @@ Ext.define('CustomApp', {
 
     launch: function() {
         //Write app code here
+        this.add({ xtype:'container', html: 'This is some text'});
+        
         this.add({ 
             xtype:'button', 
             renderTpl: ['<button id="MyButton">Hi</button>'],
