@@ -22,7 +22,7 @@ Ext.define('AccessibilityApp.ProjectSelector', {
             }
         ],
         componentId : 'projectSelector',
-        componentHtml : null,
+        componentHtml : null
     },
     
     // Constructor    
@@ -86,28 +86,7 @@ Ext.define('CustomApp', {
     projectSelector: null,
     grid: null,
 
-    launch: function() {
-        
-        /* this.add({
-            xtype: 'rallycombobox',
-            allowBlank: false,
-            editable: false,
-            triggerAction: 'all',
-            typeAhead: false,
-            hiddenName: 'Select Project',
-            width: 250,
-            listWidth: 250,
-            storeConfig: {
-                autoLoad: true,
-                model: 'Project',
-                sorters: [
-                    {
-                        property: 'Name',
-                        direction: 'Asc'
-                    }
-                ]
-            }                        
-        }); */
+    launch: function() {        
         
         projectSelectorComponent = Ext.create('AccessibilityApp.ProjectSelector', {
             title: 'Select Project',
@@ -173,18 +152,11 @@ Ext.define('CustomApp', {
                         'Owner'
                     ],
                     storeConfig: {
-                        filters: [
-                            {
-                                property: 'Project',
-                                operator: '=',
-                                value: selectedProjectRef
-                            },
-                            {
-                                property: 'ScheduleState',
-                                operator: '=',
-                                value: 'Defined'
-                            }
-                        ]
+                        context: {
+                            project: selectedProjectRef,
+                            projectScopeUp: false,
+                            projectScopeDown: false
+                        }
                     }
                 });
             },
