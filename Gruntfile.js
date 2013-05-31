@@ -33,8 +33,8 @@ module.exports = function(grunt) {
   //load
   grunt.loadNpmTasks('grunt-templater');
 
-  // default
+  // default creates an html file that can be copied and pasted into a Rally app 
   grunt.registerTask('default', ['template:prod']);
-  
+  // debug creates an html file that can be loaded on its own without copying and pasting into Rally
   grunt.registerTask('debug', ['template:dev']);
 };
