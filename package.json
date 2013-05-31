@@ -1,0 +1,14 @@
+{
+  "_comment": "This file is used by grunt",
+  "name":"rally-accessible-app",
+  "version": "0.1.0",
+  "devDependencies": {
+    "grunt": "0.4.1",
+    "grunt-cli": "0.1.6",
+    "grunt-contrib-jasmine": "0.3.3.",
+    "grunt-webdriver-jasmine-runner": "git+ssh://git@github.com:RallySoftware/grunt-webdriver-jasmine-runner.git#v0.0.5",
+    "grunt-templater":"0.0.4-1",
+    "underscore": "1.4.4"
+  }
+}
+
