@@ -28,8 +28,13 @@ From the command line, use the node package manager to install grunt.  On linux/
 `sudo npm install -g grunt-cli
 sudo npm install -g grunt-init`
 
-Change directories to the root of this project and locally install grunt.  I'm not sure what this does.
+4. Install additional dependencies: grunt-templater, and underscore:
+`sudo npm install -g grunt-templater
+sudo npm install -g underscore`
+
+5. Change directories to the root of this project and locally install grunt.  I'm not sure what this does.
 `sudo npm install grunt`
+
 
 ## Developing ##
 
