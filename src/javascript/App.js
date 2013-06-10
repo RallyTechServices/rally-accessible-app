@@ -44,7 +44,7 @@ Ext.define('CustomApp', {
         this.add({
             xtype: 'button',
             text: 'Get Stories',
-            buttonLabel : 'Get Stories',            
+            buttonLabel : 'Get Stories',
             handler: this._getStories,
             scope: this
         });        
@@ -81,6 +81,19 @@ Ext.define('CustomApp', {
                 });
             },
             scope: this
-        });        
+        });
+        
+        Ext.create('Rally.technicalservices.accessible.grid', {
+            componentId : 'accessible-story-grid',
+            caption: 'Accessible Rally Grid',
+            type: 'UserStory',
+            fetch: ['FormattedID','Name', 'ScheduleState'],
+            storeContext: {
+                project: selectedProjectRef,
+                projectScopeUp: false,
+                projectScopeDown: false
+            },
+            renderTo: Ext.getBody().dom
+        });
     }
 });
