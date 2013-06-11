@@ -12,14 +12,15 @@ Ext.define('CustomApp', {
         {xtype:'container',itemId:'grid_box' },
         {xtype:'container',itemId:'alert_area',id:'alert_area'}
     ],
-    
+    _log: function(msg) {
+        window.console && console.log( msg );  
+    },
     _alert: function(message) {
         this.down('#alert_area').removeAll();
         this.down('#alert_area').add({ xtype:'container',html:'<span role="alert">' + message + "</span>"});
     },
     
     launch: function() {       
-        console.log(Ext.getBody());
         Ext.getBody().set({ role: 'application' });
                 
         projectSelectorComponent = Ext.create('Rally.technicalservices.accessible.ProjectSelector', {
@@ -65,19 +66,53 @@ Ext.define('CustomApp', {
 
         Ext.get('alert_area').set({role:'alert'});
         this._alert("Select project and use button to list user stories");
+        
+//        var me = this;
+//        Rally.data.ModelFactory.getModel({
+//            type:'User Story',
+//            success: function(model) {
+//                me.add({
+//                    xtype:'rallygrid',
+//                    model:model,
+//                    columnCfgs:[
+//                        {text:'id',dataIndex:'FormattedID',id:'FormattedID'},
+//                        {text:'Name',dataIndex:'Name',id:'Name'},
+//                        {text:'Schedule State',dataIndex:'ScheduleState',id:'ScheduleState'}
+//                    ]
+//                });
+//            }
+//        });
     },
     
     
     // Loads/refreshes grid with subset of Stories from selected project
     _getStories: function() {
-        
+        this._log('_getStories');
         // Get the ref of the selected project
         var selectedProjectRef = projectSelector.getEl().dom.value;
         var selectedProjectName = projectSelector.getEl().dom.options[projectSelector.getEl().dom.selectedIndex].text
+        this._alert("Loading Stories for " + selectedProjectName );
+
         // Clear out existing grid if present
         if (this.grid) {
             this.remove(this.grid);
         }
+        
+        var store = Ext.create('Rally.data.WsapiDataStore',{
+            model: 'User Story',
+            context: {
+                project: selectedProjectRef,
+                projectScopeUp: false,
+                projectScopeDown: false
+            },
+            autoLoad:true,
+            listeners: {
+                scope: this,
+                load: function(store,data,success){
+                    this._makeGrid(store);
+                }
+            }
+        });
         
         // ModelFactory Section: Incorporates a standard Rally grid
         /*
@@ -106,40 +141,63 @@ Ext.define('CustomApp', {
         
         // accessibleGridBuilder Section: Incorporates a custom "accessible" grid
 
-        accessibleGridBuilder = Ext.create('Rally.technicalservices.accessible.grid', {
-            componentId : 'accessible-story-grid',
-            caption: 'User Stories in ' + selectedProjectName,
-            type: 'UserStory',
-            fetch: ['FormattedID','Name', 'ScheduleState'],
-            columnWidths: [200, 300, 300],
-            storeContext: {
-                project: selectedProjectRef,
-                projectScopeUp: false,
-                projectScopeDown: false
-            },
+//        this.accessibleGridBuilder = Ext.create('Rally.technicalservices.accessible.grid', {
+//            componentId : 'accessible-story-grid',
+//            caption: 'User Stories in ' + selectedProjectName,
+//            type: 'UserStory',
+//            fetch: ['FormattedID','Name', 'ScheduleState'],
+//            columnWidths: [200, 300, 300],
+//            storeContext: {
+//                project: selectedProjectRef,
+//                projectScopeUp: false,
+//                projectScopeDown: false
+//            },
+//            listeners: {
+//                ready: this._gridBuilderLoaded,
+//                scope: this
+//            },
+//            renderTo: Ext.getBody().dom
+//        });
+        
+    },
+    _makeGrid: function(store) {
+        if (this.grid){this.grid.destroy();}
+        
+        this.grid = Ext.create('Rally.technicalservices.accessible.grid',{
+            store: store,
+            title: 'User Stories',
+            caption: 'Table of User Stories',
+            columns: [
+                {text:'FormattedID',dataIndex:'FormattedID'},
+                {text:'Name',dataIndex:'Name'},
+                {text:'ScheduleState',dataIndex:'ScheduleState'}
+            ],
             listeners: {
-                ready: this._gridBuilderLoaded,
-                scope: this
-            },
-            renderTo: Ext.getBody().dom
+                scope: this,
+                afterrender: function() {
+                    this._alert("Table Ready");
+                }
+            }
         });
         
+        this.down('#grid_box').add(this.grid);
     },
     
     _gridBuilderLoaded: function() {
         
-        var gridHtml = accessibleGridBuilder.getGridHtml();
+        var gridHtml = this.accessibleGridBuilder.getGridHtml();
         
         if (this.accessibleGridPanel) {
             this.remove(this.accessibleGridPanel);
         }
         
-        this.grid = new Ext.container.Container({
-            title: 'User Stories',
-            width: 800,
-            html: gridHtml
-        });        
+//        this.grid = new Ext.container.Container({
+//            title: 'User Stories',
+//            width: 800,
+//            html: gridHtml
+//        });        
         
+        this.grid = this.accessibleGridBuilder;
         this.down('#grid_box').add(this.grid); 
         this._alert("The user story table is ready");    
     }
