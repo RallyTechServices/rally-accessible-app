@@ -29,7 +29,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
      *     });
      */
     
-    extend: 'Ext.Panel',
+    extend: 'Ext.panel.Panel',
     requires: ['Rally.data.WsapiDataStore'],
     alias: 'widget.tsaccessiblegrid',
     
@@ -43,13 +43,14 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         type: null,
         wsapiStore: null,
         fetch: ['ObjectID','FormattedID','Name'],
+        columnWidths: [100, 100, 100],
         storeFilters: [{}],
         storeSorters: [
             {
                 property: 'Name',
                 direction: 'ASC'
             }
-        ],
+        ]
     },
     
     // Constructor    
@@ -88,6 +89,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         var theadTpl = new Ext.Template('<thead>{0}</thead>');
         var thColumnHeaderTpl = new Ext.Template('<th id="{0}">{1}</th>');
         var tbodyOpenTpl = new Ext.Template('<tbody id="{0}">');
+        var columnWidthTpl = new Ext.Template('<col width="{0}">');
         var trRowHeaderTpl = new Ext.Template('<th id="{0}" role="gridcell" aria-labelledby="{1}" tabindex="0">{2}</th>');
         var rowIdTpl = new Ext.Template('row{0}');
         var rowHeaderAriaLabelledByTpl = new Ext.Template('{0} r{1}'); // {0} = Column Name {1} = row number
@@ -106,6 +108,11 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         itemHtml += tableOpenTpl.apply([this.componentId, this.caption]);
         itemHtml += captionTpl.apply([this.caption]);
         
+        // Insert column widths
+        for (var i=0; i<tableColumnNames.length; i++) {
+            itemHtml += columnWidthTpl.apply(this.columnWidths[i]);
+        }
+        
         // Build Table Header
         var tableHeaderHtml = '';
         for (var i=0; i<tableColumnNames.length; i++) {
@@ -115,6 +122,8 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         
         // Table Body
         itemHtml += tbodyOpenTpl.apply(['grid-data']);
+        
+        // Specify columnWidths
         
         // Build Table Rows
         var rowId = null;
@@ -134,10 +143,13 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                 columnNameLower = tableColumnNames[i].toLowerCase();
                 
                 // Apply render templates for Cell ID, Value
-                gridCellId = gridCellIdTpl.apply([i, columnNameLower]);
+                gridCellId = gridCellIdTpl.apply([j, columnNameLower]);
                 gridCellValue = record[tableColumnNames[i]];
                 
                 // Apply row header if first column
+                // Turns out the row header using aria-labelledby is confusing
+                // and just announces the aria-labelled by value in lieu of anything else
+                // better to go with regular <td> markup including headers (which do get announced)
                 if (i===0) {
                     rowHeaderAriaLabelledBy = rowHeaderAriaLabelledByTpl.apply([columnNameLower, i]);
                     itemHtml += trRowHeaderTpl.apply([gridCellId, rowHeaderAriaLabelledBy, gridCellValue]);
@@ -153,14 +165,20 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         }        
         // Close Table
         itemHtml += '</tbody></table>';
-        this.componentHtml = itemHtml;   
-        this._componentReady();     
+        this.html = itemHtml;   
+        this._componentReady();
+        console.log(itemHtml);
     },
         
     // Calls the ready handler passed in via config
     _componentReady: function() {    
-        if (this.componentHtml && Ext.isFunction(this.config.listeners.ready)) {
+        if (this.html && Ext.isFunction(this.config.listeners.ready)) {
             this.config.listeners.ready.call(this.config.listeners.scope);
         }           
+    },
+    
+    // Getter for the html for the grid
+    getGridHtml: function() {
+        return this.html;
     }
 });

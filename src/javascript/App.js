@@ -5,6 +5,8 @@ Ext.define('CustomApp', {
     projectSelectorComponent : null,
     projectSelector: null,
     grid: null,
+    accessibleGridBuilder: null,
+    accessibleGridPanel: null,
 
     launch: function() {        
         
@@ -53,13 +55,17 @@ Ext.define('CustomApp', {
     
     // Loads/refreshes grid with subset of Stories from selected project
     _getStories: function() {
+        
+        // Get the ref of the selected project
         var selectedProjectRef = projectSelector.getEl().dom.value;
         
         // Clear out existing grid if present
         if (this.grid) {
             this.remove(this.grid);
         }
-
+        
+        // ModelFactory Section: Incorporates a standard Rally grid
+        /*
         Rally.data.ModelFactory.getModel({
             type: 'UserStory',
             success: function(model) {                
@@ -81,19 +87,45 @@ Ext.define('CustomApp', {
                 });
             },
             scope: this
-        });
+        }); */
         
-        Ext.create('Rally.technicalservices.accessible.grid', {
+        // accessibleGridBuilder Section: Incorporates a custom "accessible" grid
+        
+        accessibleGridBuilder = Ext.create('Rally.technicalservices.accessible.grid', {
             componentId : 'accessible-story-grid',
             caption: 'Accessible Rally Grid',
             type: 'UserStory',
             fetch: ['FormattedID','Name', 'ScheduleState'],
+            columnWidths: [200, 300, 300],
             storeContext: {
                 project: selectedProjectRef,
                 projectScopeUp: false,
                 projectScopeDown: false
             },
+            listeners: {
+                ready: this._gridBuilderLoaded,
+                scope: this
+            },
             renderTo: Ext.getBody().dom
         });
+        
+    },
+    
+    _gridBuilderLoaded: function() {
+        
+        var gridHtml = accessibleGridBuilder.getGridHtml();
+        
+        if (this.accessibleGridPanel) {
+            this.remove(this.accessibleGridPanel);
+        }
+        
+        accessibleGridPanel = new Ext.panel.Panel({
+            renderTo: Ext.getBody(),
+            title: 'User Stories',
+            width: 800,
+            html: gridHtml
+        });        
+        
+        this.add(accessibleGridPanel);  
     }
 });

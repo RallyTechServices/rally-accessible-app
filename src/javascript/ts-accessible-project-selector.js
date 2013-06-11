@@ -60,14 +60,16 @@ Ext.define('Rally.technicalservices.accessible.ProjectSelector', {
     _buildComponentHtml: function(store, data) {
         
         var itemHtml = '';
-        Ext.Array.each(data, function(record) {
-            itemHtml += '<option value="' + record.get('_ref') + '">';
-            itemHtml += record.get('Name');
-            itemHtml += '</option>\n';
-        });
-        this.componentHtml = itemHtml;
+        var optionItemTpl = new Ext.Template('<option value="{0}">{1}</option>\n');
         
-        this._componentReady();     
+        Ext.Array.each(data, function(record) {
+            var optionValue = record.get('_ref');
+            var optionName = record.get('Name');
+            
+            itemHtml += optionItemTpl.apply([optionValue, optionName]);
+        });
+        this.componentHtml = itemHtml;        
+        this._componentReady();
     },
         
     // Calls the ready handler passed in via config
