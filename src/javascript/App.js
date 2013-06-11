@@ -66,22 +66,6 @@ Ext.define('CustomApp', {
 
         Ext.get('alert_area').set({role:'alert'});
         this._alert("Select project and use button to list user stories");
-        
-//        var me = this;
-//        Rally.data.ModelFactory.getModel({
-//            type:'User Story',
-//            success: function(model) {
-//                me.add({
-//                    xtype:'rallygrid',
-//                    model:model,
-//                    columnCfgs:[
-//                        {text:'id',dataIndex:'FormattedID',id:'FormattedID'},
-//                        {text:'Name',dataIndex:'Name',id:'Name'},
-//                        {text:'Schedule State',dataIndex:'ScheduleState',id:'ScheduleState'}
-//                    ]
-//                });
-//            }
-//        });
     },
     
     
@@ -113,51 +97,6 @@ Ext.define('CustomApp', {
                 }
             }
         });
-        
-        // ModelFactory Section: Incorporates a standard Rally grid
-        /*
-        Rally.data.ModelFactory.getModel({
-            type: 'UserStory',
-            success: function(model) {                
-                this.grid = this.add({
-                    xtype: 'rallygrid',
-                    model: model,
-                    columnCfgs: [
-                        'FormattedID',
-                        'Name',
-                        'Owner'
-                    ],
-                    storeConfig: {
-                        context: {
-                            project: selectedProjectRef,
-                            projectScopeUp: false,
-                            projectScopeDown: false
-                        }
-                    }
-                });
-            },
-            scope: this
-        }); */
-        
-        // accessibleGridBuilder Section: Incorporates a custom "accessible" grid
-
-//        this.accessibleGridBuilder = Ext.create('Rally.technicalservices.accessible.grid', {
-//            componentId : 'accessible-story-grid',
-//            caption: 'User Stories in ' + selectedProjectName,
-//            type: 'UserStory',
-//            fetch: ['FormattedID','Name', 'ScheduleState'],
-//            columnWidths: [200, 300, 300],
-//            storeContext: {
-//                project: selectedProjectRef,
-//                projectScopeUp: false,
-//                projectScopeDown: false
-//            },
-//            listeners: {
-//                ready: this._gridBuilderLoaded,
-//                scope: this
-//            },
-//            renderTo: Ext.getBody().dom
-//        });
         
     },
     _makeGrid: function(store) {

@@ -119,9 +119,6 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                     gridCellValue = record[tableColumnNames[i]];
                     
                     // Apply row header if first column
-                    // Turns out the row header using aria-labelledby is confusing
-                    // and just announces the aria-labelled by value in lieu of anything else
-                    // better to go with regular <td> markup including headers (which do get announced)
                     if (i===0) {
                         rowHeaderAriaLabelledBy = rowHeaderAriaLabelledByTpl.apply([columnNameLower, j]);
                         itemHtml += trRowHeaderTpl.apply([gridCellId, rowHeaderAriaLabelledBy, gridCellValue]);
