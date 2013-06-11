@@ -1,6 +1,6 @@
 Ext.define('Rally.technicalservices.accessible.grid', {
     /**
-     * Panel containing an Accessible grid
+     * Container with an Accessible grid
      *
      *     @example
      *     Ext.create('Rally.technicalservices.accessible.grid', {
@@ -84,15 +84,15 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         var itemHtml = '';
         
         // Define render templates for key markup   
-        var tableOpenTpl = new Ext.Template('<table id="{0} role="grid" summary="{1}>');
+        var tableOpenTpl = new Ext.Template('<table id="{0}" role="grid" summary="{1}">');
         var captionTpl = new Ext.Template('<caption>{0}</caption>');
         var theadTpl = new Ext.Template('<thead>{0}</thead>');
         var thColumnHeaderTpl = new Ext.Template('<th id="{0}">{1}</th>');
         var tbodyOpenTpl = new Ext.Template('<tbody id="{0}">');
         var columnWidthTpl = new Ext.Template('<col width="{0}">');
-        var trRowHeaderTpl = new Ext.Template('<th id="{0}" role="gridcell" aria-labelledby="{1}" tabindex="0">{2}</th>');
+        var trRowHeaderTpl = new Ext.Template('<td id="{0}" role="gridcell" aria-labelledby="{1}" tabindex="0">{2}</th>');
         var rowIdTpl = new Ext.Template('row{0}');
-        var rowHeaderAriaLabelledByTpl = new Ext.Template('{0} r{1}'); // {0} = Column Name {1} = row number
+        var rowHeaderAriaLabelledByTpl = new Ext.Template('{0} row{1}'); // {0} = Column Name {1} = row number
         var gridCellIdTpl = new Ext.Template('row{0}-{1}'); // {0} = row number, {1} = Column name
         var trTpl = new Ext.Template('<tr role="row" id="{0}">'); // id="row1"
         var tdHeadersTpl = new Ext.Template('{0} row{1}'); //{0} = Column Name; {1} = Row Number
@@ -151,7 +151,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                 // and just announces the aria-labelled by value in lieu of anything else
                 // better to go with regular <td> markup including headers (which do get announced)
                 if (i===0) {
-                    rowHeaderAriaLabelledBy = rowHeaderAriaLabelledByTpl.apply([columnNameLower, i]);
+                    rowHeaderAriaLabelledBy = rowHeaderAriaLabelledByTpl.apply([columnNameLower, j]);
                     itemHtml += trRowHeaderTpl.apply([gridCellId, rowHeaderAriaLabelledBy, gridCellValue]);
                 }                
                 // Otherwise it's a regular <td> gridcell

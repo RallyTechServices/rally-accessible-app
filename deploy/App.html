@@ -3,8 +3,8 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu May 30 2013 19:17:18 GMT-0700 (PDT) -->
-    <script type="text/javascript" src="/apps/2.0p5/sdk.js"></script>
+    <!--  Build Date: Mon Jun 10 2013 21:26:48 GMT-0700 (PDT) -->
+    <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
         Rally.onReady(function() {
@@ -16,9 +16,23 @@ Ext.define('CustomApp', {
     projectSelectorComponent : null,
     projectSelector: null,
     grid: null,
-
-    launch: function() {        
-        
+    accessibleGridBuilder: null,
+    accessibleGridPanel: null,
+    items: [ 
+        {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }},
+        {xtype:'container',itemId:'grid_box' },
+        {xtype:'container',itemId:'alert_area',id:'alert_area'}
+    ],
+    
+    _alert: function(message) {
+        this.down('#alert_area').removeAll();
+        this.down('#alert_area').add({ xtype:'container',html:'<span role="alert">' + message + "</span>"});
+    },
+    
+    launch: function() {       
+        console.log(Ext.getBody());
+        Ext.getBody().set({ role: 'application' });
+                
         projectSelectorComponent = Ext.create('Rally.technicalservices.accessible.ProjectSelector', {
             title: 'Select Project',
             modelType: 'Project',
@@ -50,27 +64,34 @@ Ext.define('CustomApp', {
             }
         });
         
-        this.add(projectSelector);
+        this.down('#selector_box').add(projectSelector);
         
-        this.add({
+        this.down('#selector_box').add({
             xtype: 'button',
             text: 'Get Stories',
-            buttonLabel : 'Get Stories',            
+            buttonLabel : 'Get Stories',
             handler: this._getStories,
             scope: this
-        });        
+        });   
+
+        Ext.get('alert_area').set({role:'alert'});
+        this._alert("Select project and use button to list user stories");
     },
     
     
     // Loads/refreshes grid with subset of Stories from selected project
     _getStories: function() {
-        var selectedProjectRef = projectSelector.getEl().dom.value;
         
+        // Get the ref of the selected project
+        var selectedProjectRef = projectSelector.getEl().dom.value;
+        var selectedProjectName = projectSelector.getEl().dom.options[projectSelector.getEl().dom.selectedIndex].text
         // Clear out existing grid if present
         if (this.grid) {
             this.remove(this.grid);
         }
-
+        
+        // ModelFactory Section: Incorporates a standard Rally grid
+        /*
         Rally.data.ModelFactory.getModel({
             type: 'UserStory',
             success: function(model) {                
@@ -92,7 +113,46 @@ Ext.define('CustomApp', {
                 });
             },
             scope: this
+        }); */
+        
+        // accessibleGridBuilder Section: Incorporates a custom "accessible" grid
+
+        accessibleGridBuilder = Ext.create('Rally.technicalservices.accessible.grid', {
+            componentId : 'accessible-story-grid',
+            caption: 'User Stories in ' + selectedProjectName,
+            type: 'UserStory',
+            fetch: ['FormattedID','Name', 'ScheduleState'],
+            columnWidths: [200, 300, 300],
+            storeContext: {
+                project: selectedProjectRef,
+                projectScopeUp: false,
+                projectScopeDown: false
+            },
+            listeners: {
+                ready: this._gridBuilderLoaded,
+                scope: this
+            },
+            renderTo: Ext.getBody().dom
+        });
+        
+    },
+    
+    _gridBuilderLoaded: function() {
+        
+        var gridHtml = accessibleGridBuilder.getGridHtml();
+        
+        if (this.accessibleGridPanel) {
+            this.remove(this.accessibleGridPanel);
+        }
+        
+        this.grid = new Ext.container.Container({
+            title: 'User Stories',
+            width: 800,
+            html: gridHtml
         });        
+        
+        this.down('#grid_box').add(this.grid); 
+        this._alert("The user story table is ready");    
     }
 });
 
@@ -158,14 +218,16 @@ Ext.define('Rally.technicalservices.accessible.ProjectSelector', {
     _buildComponentHtml: function(store, data) {
         
         var itemHtml = '';
-        Ext.Array.each(data, function(record) {
-            itemHtml += '<option value="' + record.get('_ref') + '">';
-            itemHtml += record.get('Name');
-            itemHtml += '</option>\n';
-        });
-        this.componentHtml = itemHtml;
+        var optionItemTpl = new Ext.Template('<option value="{0}">{1}</option>\n');
         
-        this._componentReady();     
+        Ext.Array.each(data, function(record) {
+            var optionValue = record.get('_ref');
+            var optionName = record.get('Name');
+            
+            itemHtml += optionItemTpl.apply([optionValue, optionName]);
+        });
+        this.componentHtml = itemHtml;        
+        this._componentReady();
     },
         
     // Calls the ready handler passed in via config
@@ -176,6 +238,190 @@ Ext.define('Rally.technicalservices.accessible.ProjectSelector', {
     }
 });
 
+Ext.define('Rally.technicalservices.accessible.grid', {
+    /**
+     * Container with an Accessible grid
+     *
+     *     @example
+     *     Ext.create('Rally.technicalservices.accessible.grid', {
+     *         componentId : 'my-grid',
+     *         caption: 'Accessible Rally Grid',
+     *         type: 'User Story',
+     *         fetch: ['ObjectID','FormattedID','Name'],
+     *         storeFilters: [
+     *                {
+     *                    property: 'State',
+     *                    value: 'Open'
+     *                }
+     *         ],
+     *         storeSorters: [
+     *                {
+     *                     property: 'Name',
+     *                     direction: 'ASC'
+     *                }
+     *         ],
+     *         storeContext: {
+     *              project: '/project/12345678910',
+     *              projectScopeUp: false,
+     *              projectScopeDown: false
+     *         },
+     *         renderTo: Ext.getBody().dom
+     *     });
+     */
+    
+    extend: 'Ext.panel.Panel',
+    requires: ['Rally.data.WsapiDataStore'],
+    alias: 'widget.tsaccessiblegrid',
+    
+    // Default Configuration parameters
+    config: {
+        title: 'Rally Accessible Grid',
+        width: 800,
+        html: '<p>World!</p>',
+        componentId: 'ts-accessible-grid',
+        caption: 'Rally Accessible Grid',
+        type: null,
+        wsapiStore: null,
+        fetch: ['ObjectID','FormattedID','Name'],
+        columnWidths: [100, 100, 100],
+        storeFilters: [{}],
+        storeSorters: [
+            {
+                property: 'Name',
+                direction: 'ASC'
+            }
+        ]
+    },
+    
+    // Constructor    
+    constructor: function(config) {        
+        
+        this.mergeConfig(config);
+           
+        Ext.create('Rally.data.WsapiDataStore', {
+            model: this.type,
+            autoLoad: true,
+            fetch: this.fetch,
+            listeners: {
+                load: this._onStoreLoaded,
+                scope: this
+            },
+            sorters: this.storeSorters
+        });
+        
+        this.callParent([this.config]);        
+    },
+    
+    // Called when WsapiDataStore is finished loading    
+    _onStoreLoaded: function(store, data) {
+        this.wsapiStore = store;
+        this._buildComponentHtml(store, data);
+    },
+    
+    // Uses data in WSAPI Data store to build a Panel containing a table
+    _buildComponentHtml: function(store, data) {        
+        
+        var itemHtml = '';
+        
+        // Define render templates for key markup   
+        var tableOpenTpl = new Ext.Template('<table id="{0}" role="grid" summary="{1}">');
+        var captionTpl = new Ext.Template('<caption>{0}</caption>');
+        var theadTpl = new Ext.Template('<thead>{0}</thead>');
+        var thColumnHeaderTpl = new Ext.Template('<th id="{0}">{1}</th>');
+        var tbodyOpenTpl = new Ext.Template('<tbody id="{0}">');
+        var columnWidthTpl = new Ext.Template('<col width="{0}">');
+        var trRowHeaderTpl = new Ext.Template('<td id="{0}" role="gridcell" aria-labelledby="{1}" tabindex="0">{2}</th>');
+        var rowIdTpl = new Ext.Template('row{0}');
+        var rowHeaderAriaLabelledByTpl = new Ext.Template('{0} row{1}'); // {0} = Column Name {1} = row number
+        var gridCellIdTpl = new Ext.Template('row{0}-{1}'); // {0} = row number, {1} = Column name
+        var trTpl = new Ext.Template('<tr role="row" id="{0}">'); // id="row1"
+        var tdHeadersTpl = new Ext.Template('{0} row{1}'); //{0} = Column Name; {1} = Row Number
+        var tdTpl = new Ext.Template('<td id="{0}" role="gridcell" headers="{1}" tabindex="0">{2}</td>')
+        var trCloseTpl = new Ext.Template('</tr>');
+        var tbodyCloseTpl = new Ext.Template('</tbody>');
+        var tableCloseTpl = new Ext.Template('</table>');
+        
+        // Field names of columns in the grid
+        var tableColumnNames = this.fetch;
+        
+        // Build Table
+        itemHtml += tableOpenTpl.apply([this.componentId, this.caption]);
+        itemHtml += captionTpl.apply([this.caption]);
+        
+        // Insert column widths
+        for (var i=0; i<tableColumnNames.length; i++) {
+            itemHtml += columnWidthTpl.apply(this.columnWidths[i]);
+        }
+        
+        // Build Table Header
+        var tableHeaderHtml = '';
+        for (var i=0; i<tableColumnNames.length; i++) {
+            tableHeaderHtml += thColumnHeaderTpl.apply([tableColumnNames[i].toLowerCase(), tableColumnNames[i]]);
+        }
+        itemHtml += theadTpl.apply([tableHeaderHtml]);
+        
+        // Table Body
+        itemHtml += tbodyOpenTpl.apply(['grid-data']);
+        
+        // Specify columnWidths
+        
+        // Build Table Rows
+        var rowId = null;
+        var columnNameLower = null;
+        var gridCellId = null;
+        var rowHeaderAriaLabelledBy = null;
+        var tdHeaders = null;
+        
+        for (var j=0; j<data.length; j++) {
+            // Row identifier
+            rowId = rowIdTpl.apply([j]);
+            itemHtml += trTpl.apply([rowId]);
+            record = data[j].data;
+            
+            // Apply column data
+            for (i = 0; i<tableColumnNames.length; i++) {                
+                columnNameLower = tableColumnNames[i].toLowerCase();
+                
+                // Apply render templates for Cell ID, Value
+                gridCellId = gridCellIdTpl.apply([j, columnNameLower]);
+                gridCellValue = record[tableColumnNames[i]];
+                
+                // Apply row header if first column
+                // Turns out the row header using aria-labelledby is confusing
+                // and just announces the aria-labelled by value in lieu of anything else
+                // better to go with regular <td> markup including headers (which do get announced)
+                if (i===0) {
+                    rowHeaderAriaLabelledBy = rowHeaderAriaLabelledByTpl.apply([columnNameLower, j]);
+                    itemHtml += trRowHeaderTpl.apply([gridCellId, rowHeaderAriaLabelledBy, gridCellValue]);
+                }                
+                // Otherwise it's a regular <td> gridcell
+                else {
+                    tdHeaders = tdHeadersTpl.apply([columnNameLower, j]);
+                    itemHtml += tdTpl.apply([gridCellId, tdHeaders, gridCellValue]);
+                }
+            }
+            // Close row
+            itemHtml += '</tr>';
+        }        
+        // Close Table
+        itemHtml += '</tbody></table>';
+        this.html = itemHtml;   
+        this._componentReady();
+        console.log(itemHtml);
+    },
+        
+    // Calls the ready handler passed in via config
+    _componentReady: function() {    
+        if (this.html && Ext.isFunction(this.config.listeners.ready)) {
+            this.config.listeners.ready.call(this.config.listeners.scope);
+        }           
+    },
+    
+    // Getter for the html for the grid
+    getGridHtml: function() {
+        return this.html;
+    }
+});
             
                Rally.launchApp('CustomApp', {
                    name: 'Accessible App'

@@ -7,9 +7,21 @@ Ext.define('CustomApp', {
     grid: null,
     accessibleGridBuilder: null,
     accessibleGridPanel: null,
-
-    launch: function() {        
-        
+    items: [ 
+        {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }},
+        {xtype:'container',itemId:'grid_box' },
+        {xtype:'container',itemId:'alert_area',id:'alert_area'}
+    ],
+    
+    _alert: function(message) {
+        this.down('#alert_area').removeAll();
+        this.down('#alert_area').add({ xtype:'container',html:'<span role="alert">' + message + "</span>"});
+    },
+    
+    launch: function() {       
+        console.log(Ext.getBody());
+        Ext.getBody().set({ role: 'application' });
+                
         projectSelectorComponent = Ext.create('Rally.technicalservices.accessible.ProjectSelector', {
             title: 'Select Project',
             modelType: 'Project',
@@ -41,15 +53,18 @@ Ext.define('CustomApp', {
             }
         });
         
-        this.add(projectSelector);
+        this.down('#selector_box').add(projectSelector);
         
-        this.add({
+        this.down('#selector_box').add({
             xtype: 'button',
             text: 'Get Stories',
             buttonLabel : 'Get Stories',
             handler: this._getStories,
             scope: this
-        });        
+        });   
+
+        Ext.get('alert_area').set({role:'alert'});
+        this._alert("Select project and use button to list user stories");
     },
     
     
@@ -58,7 +73,7 @@ Ext.define('CustomApp', {
         
         // Get the ref of the selected project
         var selectedProjectRef = projectSelector.getEl().dom.value;
-        
+        var selectedProjectName = projectSelector.getEl().dom.options[projectSelector.getEl().dom.selectedIndex].text
         // Clear out existing grid if present
         if (this.grid) {
             this.remove(this.grid);
@@ -90,10 +105,10 @@ Ext.define('CustomApp', {
         }); */
         
         // accessibleGridBuilder Section: Incorporates a custom "accessible" grid
-        
+
         accessibleGridBuilder = Ext.create('Rally.technicalservices.accessible.grid', {
             componentId : 'accessible-story-grid',
-            caption: 'Accessible Rally Grid',
+            caption: 'User Stories in ' + selectedProjectName,
             type: 'UserStory',
             fetch: ['FormattedID','Name', 'ScheduleState'],
             columnWidths: [200, 300, 300],
@@ -119,13 +134,13 @@ Ext.define('CustomApp', {
             this.remove(this.accessibleGridPanel);
         }
         
-        accessibleGridPanel = new Ext.panel.Panel({
-            renderTo: Ext.getBody(),
+        this.grid = new Ext.container.Container({
             title: 'User Stories',
             width: 800,
             html: gridHtml
         });        
         
-        this.add(accessibleGridPanel);  
+        this.down('#grid_box').add(this.grid); 
+        this._alert("The user story table is ready");    
     }
 });
