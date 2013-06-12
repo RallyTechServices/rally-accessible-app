@@ -107,9 +107,9 @@ Ext.define('CustomApp', {
             title: 'User Stories',
             caption: 'Table of User Stories',
             columns: [
-                {text:'FormattedID',dataIndex:'FormattedID'},
+                {text:'id',dataIndex:'FormattedID'},
                 {text:'Name',dataIndex:'Name'},
-                {text:'ScheduleState',dataIndex:'ScheduleState'}
+                {text:'Schedule State',dataIndex:'ScheduleState'}
             ],
             listeners: {
                 scope: this,
