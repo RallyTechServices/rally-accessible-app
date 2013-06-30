@@ -5,16 +5,17 @@ Ext.define('CustomApp', {
     projectSelectorComponent : null,
     projectSelector: null,
     grid: null,
-    accessibleGridBuilder: null,
-    accessibleGridPanel: null,
+
     items: [ 
         {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }},
         {xtype:'container',itemId:'grid_box' },
         {xtype:'container',itemId:'alert_area',id:'alert_area'}
     ],
+
     _log: function(msg) {
         window.console && console.log( msg );  
     },
+    
     _alert: function(message) {
         this.down('#alert_area').removeAll();
         this.down('#alert_area').add({ xtype:'container',html:'<span role="alert">' + message + "</span>"});
@@ -99,17 +100,18 @@ Ext.define('CustomApp', {
         });
         
     },
+
     _makeGrid: function(store) {
-        if (this.grid){this.grid.destroy();}
+        if (this.grid) { this.grid.destroy(); }
         
         this.grid = Ext.create('Rally.technicalservices.accessible.grid',{
             store: store,
             title: 'User Stories',
             caption: 'Table of User Stories',
             columns: [
-                {text:'ID',dataIndex:'FormattedID'},
-                {text:'Name',dataIndex:'Name'},
-                {text:'Schedule State',dataIndex:'ScheduleState'}
+                {text:'ID', dataIndex:'FormattedID'},
+                {text:'Name', dataIndex:'Name'},
+                {text:'Schedule State', dataIndex:'ScheduleState'}
             ],
             listeners: {
                 scope: this,
@@ -120,24 +122,6 @@ Ext.define('CustomApp', {
         });
         
         this.down('#grid_box').add(this.grid);
-    },
-    
-    _gridBuilderLoaded: function() {
-        
-        var gridHtml = this.accessibleGridBuilder.getGridHtml();
-        
-        if (this.accessibleGridPanel) {
-            this.remove(this.accessibleGridPanel);
-        }
-        
-//        this.grid = new Ext.container.Container({
-//            title: 'User Stories',
-//            width: 800,
-//            html: gridHtml
-//        });        
-        
-        this.grid = this.accessibleGridBuilder;
-        this.down('#grid_box').add(this.grid); 
-        this._alert("The user story table is ready");    
     }
+    
 });

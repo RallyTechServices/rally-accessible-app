@@ -1,6 +1,5 @@
 Ext.define('Rally.technicalservices.accessible.grid', {
     extend: 'Ext.Component',
-    requires: ['Rally.data.WsapiDataStore'],
     alias: 'widget.tsaccessiblegrid',
     config: {
         caption: null,
@@ -43,8 +42,6 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     renderTpl_past: [ '{html}'],
     
     getTemplateArgs: function() {
-        
-        data = this.store.getRecords();     
         
         return {
             summary: this.title,
