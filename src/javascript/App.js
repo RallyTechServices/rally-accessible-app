@@ -2,8 +2,8 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     
-    projectSelectorComponent : null,
     projectSelector: null,
+    projectStore: null,
     grid: null,
 
     items: [ 
@@ -23,39 +23,38 @@ Ext.define('CustomApp', {
     
     launch: function() {       
         Ext.getBody().set({ role: 'application' });
-                
-        projectSelectorComponent = Ext.create('Rally.technicalservices.accessible.ProjectSelector', {
-            title: 'Select Project',
-            modelType: 'Project',
-            componentId: 'projectSelector',
-            storeSorters: [
+
+        this.projectStore = Ext.create('Rally.data.WsapiDataStore', {
+            model: 'Project',
+            autoLoad: true,
+            fetch: ['ObjectID', 'Name'],
+            listeners: {
+                load: this._onProjectStoreLoaded,
+                scope: this
+            },
+            filters: [
+                {
+                    property: 'State',
+                    value: 'Open'
+                }
+            ],
+            sorters: [
                 {
                     property: 'Name',
                     direction: 'ASC'
                 }
-            ],
-            listeners: {
-                ready: this._projectSelectorLoaded,
-                scope: this
-            }
-        });
-           
+            ]
+        });                                
     },
     
-    _projectSelectorLoaded: function() {
+    _onProjectStoreLoaded: function(store, data) {
         
-        var selectorHtml = projectSelectorComponent.getComponentHtml();
-        
-        projectSelector = new Ext.Component({
-            renderTo: Ext.getBody(),
-            autoEl: {
-                tag:'select',
-                cls:'x-font-select',
-                html: selectorHtml
-            }
+        this.projectSelector = Ext.create('Rally.technicalservices.accessible.Combobox', {
+            store: store,
+            componentId: 'projectSelector'
         });
         
-        this.down('#selector_box').add(projectSelector);
+        this.down('#selector_box').add(this.projectSelector);
         
         this.down('#selector_box').add({
             xtype: 'button',
@@ -74,8 +73,11 @@ Ext.define('CustomApp', {
     _getStories: function() {
         this._log('_getStories');
         // Get the ref of the selected project
-        var selectedProjectRef = projectSelector.getEl().dom.value;
-        var selectedProjectName = projectSelector.getEl().dom.options[projectSelector.getEl().dom.selectedIndex].text
+
+        console.log(projectSelector.value);
+
+        var selectedProjectRef = projectSelector.value;
+        var selectedProjectName = projectSelector.options[projectSelector.selectedIndex].text
         this._alert("Loading Stories for " + selectedProjectName );
 
         // Clear out existing grid if present

@@ -20,6 +20,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         '<th scope="col">{text}</th>',
         '</tpl>',
         '</tr></thead>',
+        '<tbody>',
             '<tpl for="data">',
                 '<tr>',
                     '<tpl for="parent.columns">',
@@ -36,6 +37,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                     '</tpl>',
                 '</tr>',
             '</tpl>',
+        '</tbody>',
         '</table>'
     ],
     
