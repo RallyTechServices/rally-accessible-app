@@ -5,7 +5,10 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         caption: null,
         title: 'Grid Title',
         store: null,
-        columns: []
+        columns: [],
+        editListener: null,
+        editContainer: null,
+        recordEditor: null,
     },
     
     initComponent: function(){
@@ -19,7 +22,9 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         '<tpl for="columns">',
         '<th scope="col">{text}</th>',
         '</tpl>',
-        '</tr></thead>',
+        '<th scope="col">Edit</th>',        
+        '</tr>',
+        '</thead>',
         '<tbody>',
             '<tpl for="data">',
                 '<tr>',
@@ -35,6 +40,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                             '</td>',
                         '</tpl>',
                     '</tpl>',
+                    '<td><button id="button-{#}">Edit Record</button></td>',
                 '</tr>',
             '</tpl>',
         '</tbody>',
@@ -43,8 +49,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     renderTpl_past: [ '{html}'],
     
-    getTemplateArgs: function() {
-        
+    getTemplateArgs: function() {        
         return {
             summary: this.title,
             caption: this.caption || this.title,
@@ -55,9 +60,26 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     beforeRender: function() {
         var me = this;
-        me.callParent();
-        
+        me.callParent();        
         Ext.applyIf(me.renderData, me.getTemplateArgs());
+    },
+
+    afterRender: function() {
+        var me = this;
+        for (var i=0; i<this.store.getRecords().length; i++) {
+            Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
+        }
+    },
+
+    // Edit button: calls the event handler passed in via config
+    _editButtonClickHandler: function(extEventObject, buttonEl, eOpts) {
+        var buttonId = buttonEl.id;
+        var rowIndex = buttonId.replace(/^\D+/g, '');
+        var recordToEdit = this.store.getAt(rowIndex).data;
+
+        if (Ext.isFunction(this.editListener.editButtonClicked)) {
+            this.editListener.editButtonClicked.call(this, recordToEdit);
+        }           
     }
     
 //    onRender: function(){

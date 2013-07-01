@@ -5,11 +5,13 @@ Ext.define('CustomApp', {
     projectSelector: null,
     projectStore: null,
     grid: null,
+    recordEditor: null,
 
     items: [ 
         {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }},
         {xtype:'container',itemId:'grid_box' },
-        {xtype:'container',itemId:'alert_area',id:'alert_area'}
+        {xtype:'container',itemId:'alert_area',id:'alert_area'},
+        {xtype:'container',itemId:'editor_area',id:'editor_area'}
     ],
 
     _log: function(msg) {
@@ -120,10 +122,52 @@ Ext.define('CustomApp', {
                 afterrender: function() {
                     this._alert("Table Ready");
                 }
-            }
+            },
+            editListener: {
+                editButtonClicked: this._editRecord,
+                scope: this
+            },
+            editContainer: this.down('#editor_area')
         });
         
         this.down('#grid_box').add(this.grid);
+    },
+
+    _editRecord: function(record) {
+
+        if (this.recordEditor) {
+            this.recordEditor.destroy();
+        }
+        
+        var itemsArray = new Array();
+        
+        for (var i=0; i<this.columns.length; i++) {            
+            var thisItem = {
+                xtype: 'rallytextfield',
+                fieldLabel: this.columns[i].text,
+                value: record[this.columns[i].dataIndex]
+            }
+            itemsArray.push(thisItem);
+        }        
+        
+        // Add a save button
+        itemsArray.push({
+            xtype: 'button',
+            text: 'Save Edits',
+            buttonLabel : 'Save Edits',
+            handler: this._saveRecord,
+            scope: this            
+        });
+        
+        this.recordEditor = Ext.create('Ext.Container', {
+            items: itemsArray
+        });        
+        
+        this.editContainer.add(this.recordEditor);        
+    },
+    
+    _saveRecord: function() {
+        this._log('_saveRecord');        
     }
     
 });
