@@ -79,7 +79,7 @@ Ext.define('CustomApp', {
         console.log(projectSelector.value);
 
         var selectedProjectRef = projectSelector.value;
-        var selectedProjectName = projectSelector.options[projectSelector.selectedIndex].text
+        var selectedProjectName = projectSelector.options[projectSelector.selectedIndex].text;
         this._alert("Loading Stories for " + selectedProjectName );
 
         // Clear out existing grid if present
