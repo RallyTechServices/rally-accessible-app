@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Jun 11 2013 21:03:38 GMT-0700 (PDT) -->
+    <!--  Build Date: Mon Jul 01 2013 17:59:19 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -13,373 +13,205 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     
-    projectSelectorComponent : null,
     projectSelector: null,
+    projectStore: null,
     grid: null,
-    accessibleGridBuilder: null,
-    accessibleGridPanel: null,
+
     items: [ 
+        {xtype:'container', items: [ 
+            {xtype: 'container', html: '<h1>Top of the App</h1> ' +
+                    '<p>This app allows a user to select a project and find stories within that project. ' +
+                    'It will present a table of results after the button is pushed.</p>' }
+        ]},
         {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }},
         {xtype:'container',itemId:'grid_box' },
-        {xtype:'container',itemId:'alert_area',id:'alert_area'}
+        {xtype:'container', items: [
+            {xtype:'container',html:'<h1>Alerts</h1>'},
+            {xtype:'container',itemId:'alert_area',id:'alert_area'}
+        ]}
     ],
+
     _log: function(msg) {
         window.console && console.log( msg );  
     },
+    
     _alert: function(message) {
         this.down('#alert_area').removeAll();
         this.down('#alert_area').add({ xtype:'container',html:'<span role="alert">' + message + "</span>"});
-    },
+
+        var objHidden = document.getElementById('virtualbufferupdate');
     
+        if (objHidden)
+        {
+            if (objHidden.getAttribute('value') == '1') {
+                objHidden.setAttribute('value', '0');
+            } else {
+                objHidden.setAttribute('value', '1');
+            }
+        } else {
+            this._prepareBuffer();
+        }
+    },
+    _prepareBuffer: function(){
+        var objNew = document.createElement('p');
+        var objHidden = document.createElement('input');
+    
+        objHidden.setAttribute('type', 'hidden');
+        objHidden.setAttribute('value', '1');
+        objHidden.setAttribute('id', 'virtualbufferupdate');
+        objHidden.setAttribute('name', 'virtualbufferupdate');
+    
+        objNew.appendChild(objHidden);
+        Ext.getBody().appendChild(objNew);
+    },
     launch: function() {       
         Ext.getBody().set({ role: 'application' });
-                
-        projectSelectorComponent = Ext.create('Rally.technicalservices.accessible.ProjectSelector', {
-            title: 'Select Project',
-            modelType: 'Project',
-            componentId: 'projectSelector',
-            storeSorters: [
-                {
-                    property: 'Name',
-                    direction: 'ASC'
-                }
-            ],
-            listeners: {
-                ready: this._projectSelectorLoaded,
-                scope: this
-            }
-        });
-           
-    },
-    
-    _projectSelectorLoaded: function() {
-        
-        var selectorHtml = projectSelectorComponent.getComponentHtml();
-        
-        projectSelector = new Ext.Component({
-            renderTo: Ext.getBody(),
-            autoEl: {
-                tag:'select',
-                cls:'x-font-select',
-                html: selectorHtml
-            }
-        });
-        
-        this.down('#selector_box').add(projectSelector);
-        
-        this.down('#selector_box').add({
-            xtype: 'button',
-            text: 'Get Stories',
-            buttonLabel : 'Get Stories',
-            handler: this._getStories,
-            scope: this
-        });   
-
-        Ext.get('alert_area').set({role:'alert'});
-        this._alert("Select project and use button to list user stories");
-    },
-    
-    
-    // Loads/refreshes grid with subset of Stories from selected project
-    _getStories: function() {
-        this._log('_getStories');
-        // Get the ref of the selected project
-        var selectedProjectRef = projectSelector.getEl().dom.value;
-        var selectedProjectName = projectSelector.getEl().dom.options[projectSelector.getEl().dom.selectedIndex].text
-        this._alert("Loading Stories for " + selectedProjectName );
-
-        // Clear out existing grid if present
-        if (this.grid) {
-            this.remove(this.grid);
-        }
-        
-        var store = Ext.create('Rally.data.WsapiDataStore',{
-            model: 'User Story',
-            context: {
-                project: selectedProjectRef,
-                projectScopeUp: false,
-                projectScopeDown: false
-            },
-            autoLoad:true,
-            listeners: {
-                scope: this,
-                load: function(store,data,success){
-                    this._makeGrid(store);
-                }
-            }
-        });
-        
-    },
-    _makeGrid: function(store) {
-        if (this.grid){this.grid.destroy();}
-        
-        this.grid = Ext.create('Rally.technicalservices.accessible.grid',{
-            store: store,
-            title: 'User Stories',
-            caption: 'Table of User Stories',
-            columns: [
-                {text:'id',dataIndex:'FormattedID'},
-                {text:'Name',dataIndex:'Name'},
-                {text:'Schedule State',dataIndex:'ScheduleState'}
-            ],
-            listeners: {
-                scope: this,
-                afterrender: function() {
-                    this._alert("Table Ready");
-                }
-            }
-        });
-        
-        this.down('#grid_box').add(this.grid);
-    },
-    
-    _gridBuilderLoaded: function() {
-        
-        var gridHtml = this.accessibleGridBuilder.getGridHtml();
-        
-        if (this.accessibleGridPanel) {
-            this.remove(this.accessibleGridPanel);
-        }
-        
-//        this.grid = new Ext.container.Container({
-//            title: 'User Stories',
-//            width: 800,
-//            html: gridHtml
-//        });        
-        
-        this.grid = this.accessibleGridBuilder;
-        this.down('#grid_box').add(this.grid); 
-        this._alert("The user story table is ready");    
-    }
-});
-Ext.define('CustomApp', {
-    extend: 'Rally.app.App',
-    componentCls: 'app',
-    
-    projectSelectorComponent : null,
-    projectSelector: null,
-    grid: null,
-    accessibleGridBuilder: null,
-    accessibleGridPanel: null,
-    items: [ 
-        {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }},
-        {xtype:'container',itemId:'grid_box' },
-        {xtype:'container',itemId:'alert_area',id:'alert_area'}
-    ],
-    _log: function(msg) {
-        window.console && console.log( msg );  
-    },
-    _alert: function(message) {
-        this.down('#alert_area').removeAll();
-        this.down('#alert_area').add({ xtype:'container',html:'<span role="alert">' + message + "</span>"});
-    },
-    
-    launch: function() {       
-        Ext.getBody().set({ role: 'application' });
-                
-        projectSelectorComponent = Ext.create('Rally.technicalservices.accessible.ProjectSelector', {
-            title: 'Select Project',
-            modelType: 'Project',
-            componentId: 'projectSelector',
-            storeSorters: [
-                {
-                    property: 'Name',
-                    direction: 'ASC'
-                }
-            ],
-            listeners: {
-                ready: this._projectSelectorLoaded,
-                scope: this
-            }
-        });
-           
-    },
-    
-    _projectSelectorLoaded: function() {
-        
-        var selectorHtml = projectSelectorComponent.getComponentHtml();
-        
-        projectSelector = new Ext.Component({
-            renderTo: Ext.getBody(),
-            autoEl: {
-                tag:'select',
-                cls:'x-font-select',
-                html: selectorHtml
-            }
-        });
-        
-        this.down('#selector_box').add(projectSelector);
-        
-        this.down('#selector_box').add({
-            xtype: 'button',
-            text: 'Get Stories',
-            buttonLabel : 'Get Stories',
-            handler: this._getStories,
-            scope: this
-        });   
-
-        Ext.get('alert_area').set({role:'alert'});
-        this._alert("Select project and use button to list user stories");
-    },
-    
-    
-    // Loads/refreshes grid with subset of Stories from selected project
-    _getStories: function() {
-        this._log('_getStories');
-        // Get the ref of the selected project
-        var selectedProjectRef = projectSelector.getEl().dom.value;
-        var selectedProjectName = projectSelector.getEl().dom.options[projectSelector.getEl().dom.selectedIndex].text
-        this._alert("Loading Stories for " + selectedProjectName );
-
-        // Clear out existing grid if present
-        if (this.grid) {
-            this.remove(this.grid);
-        }
-        
-        var store = Ext.create('Rally.data.WsapiDataStore',{
-            model: 'User Story',
-            context: {
-                project: selectedProjectRef,
-                projectScopeUp: false,
-                projectScopeDown: false
-            },
-            autoLoad:true,
-            listeners: {
-                scope: this,
-                load: function(store,data,success){
-                    this._makeGrid(store);
-                }
-            }
-        });
-        
-    },
-    _makeGrid: function(store) {
-        if (this.grid){this.grid.destroy();}
-        
-        this.grid = Ext.create('Rally.technicalservices.accessible.grid',{
-            store: store,
-            title: 'User Stories',
-            caption: 'Table of User Stories',
-            columns: [
-                {text:'id',dataIndex:'FormattedID'},
-                {text:'Name',dataIndex:'Name'},
-                {text:'Schedule State',dataIndex:'ScheduleState'}
-            ],
-            listeners: {
-                scope: this,
-                afterrender: function() {
-                    this._alert("Table Ready");
-                }
-            }
-        });
-        
-        this.down('#grid_box').add(this.grid);
-    },
-    
-    _gridBuilderLoaded: function() {
-        
-        var gridHtml = this.accessibleGridBuilder.getGridHtml();
-        
-        if (this.accessibleGridPanel) {
-            this.remove(this.accessibleGridPanel);
-        }
-        
-//        this.grid = new Ext.container.Container({
-//            title: 'User Stories',
-//            width: 800,
-//            html: gridHtml
-//        });        
-        
-        this.grid = this.accessibleGridBuilder;
-        this.down('#grid_box').add(this.grid); 
-        this._alert("The user story table is ready");    
-    }
-});
-Ext.define('Rally.technicalservices.accessible.ProjectSelector', {
-    // Extending Component in order to get an Ext object
-    // We are ultimately building component HTML to add to the DOM
-    
-    extend: 'Ext.Component',
-    requires: ['Rally.data.WsapiDataStore'],
-    alias: 'widget.tsprojectselector',
-    
-    // Default configuration parameters
-    config: {
-        modelType: 'Project',        
-        storeFilters: [
-            {
-                property: 'State',
-                value: 'Open'
-            }
-        ],
-        storeSorters: [
-            {
-                property: 'Name',
-                direction: 'ASC'
-            }
-        ],
-        componentId : 'projectSelector',
-        componentHtml : null
-    },
-    
-    // Constructor    
-    constructor: function(config) {
-        
-        this.mergeConfig(config);
-        
-        Ext.create('Rally.data.WsapiDataStore', {
-            model: this.modelType,
+        this._alert("The application is loading.");
+        this._prepareBuffer();
+        this.projectStore = Ext.create('Rally.data.WsapiDataStore', {
+            model: 'Project',
             autoLoad: true,
             fetch: ['ObjectID', 'Name'],
             listeners: {
-                load: this._onStoreLoaded,
+                load: this._onProjectStoreLoaded,
                 scope: this
             },
-            filters: this.storeFilters,
-            sorters: this.storeSorters
-        });        
-        
-        this.callParent([this.config]);        
-    },    
-    
-    // Called when WsapiDataStore is finished loading    
-    _onStoreLoaded: function(store, data) {
-        this.wsapiStore = store;
-        this._buildComponentHtml(store, data);
+            filters: [
+                {
+                    property: 'State',
+                    value: 'Open'
+                }
+            ],
+            sorters: [
+                {
+                    property: 'Name',
+                    direction: 'ASC'
+                }
+            ]
+        });                                
     },
     
-    // Some default HTML content
-    _buildDefaultHtml: function() {
-        return '<select><option value="/project/123456789">No Projects Loaded From Rally</option></select>';        
-    },
-    
-    // Uses data in WSAPI Data store to build an HTML <select> component
-    _buildComponentHtml: function(store, data) {
+    _onProjectStoreLoaded: function(store, data) {
         
-        var itemHtml = '';
-        var optionItemTpl = new Ext.Template('<option value="{0}">{1}</option>\n');
-        
-        Ext.Array.each(data, function(record) {
-            var optionValue = record.get('_ref');
-            var optionName = record.get('Name');
-            
-            itemHtml += optionItemTpl.apply([optionValue, optionName]);
+        this.projectSelector = Ext.create('Rally.technicalservices.accessible.Combobox', {
+            store: store,
+            componentId: 'projectSelector'
         });
-        this.componentHtml = itemHtml;        
-        this._componentReady();
+        
+        this.down('#selector_box').add(this.projectSelector);
+        
+        this.down('#selector_box').add({
+            xtype: 'button',
+            text: 'Get Stories',
+            buttonLabel : 'Get Stories',
+            handler: this._getStories,
+            scope: this
+        });   
+
+        Ext.get('alert_area').set({role:'alert'});
+        this._alert("The application is loaded and available in an iFrame on the page.  Select a project from the combobox and press the button to find stories.");
+    },
+    
+    
+    // Loads/refreshes grid with subset of Stories from selected project
+    _getStories: function() {
+        this._log('_getStories');
+        // Get the ref of the selected project
+
+        this._log(projectSelector.value);
+
+        var selectedProjectRef = projectSelector.value;
+        var selectedProjectName = projectSelector.options[projectSelector.selectedIndex].text;
+        this._alert("Loading Stories for " + selectedProjectName + " project." );
+
+        // Clear out existing grid if present
+        if (this.grid) {
+            this.remove(this.grid);
+        }
+        
+        var store = Ext.create('Rally.data.WsapiDataStore',{
+            model: 'User Story',
+            context: {
+                project: selectedProjectRef,
+                projectScopeUp: false,
+                projectScopeDown: false
+            },
+            autoLoad:true,
+            listeners: {
+                scope: this,
+                load: function(store,data,success){
+                    this._makeGrid(store);
+                }
+            }
+        });
+        
+    },
+
+    _makeGrid: function(store) {
+        if (this.grid) { this.grid.destroy(); }
+        
+        this.grid = Ext.create('Rally.technicalservices.accessible.grid',{
+            store: store,
+            title: 'User Stories',
+            caption: 'Table of User Stories',
+            columns: [
+                {text:'ID', dataIndex:'FormattedID'},
+                {text:'Name', dataIndex:'Name'},
+                {text:'Schedule State', dataIndex:'ScheduleState'}
+            ],
+            listeners: {
+                scope: this,
+                afterrender: function() {
+                    this._alert("The user story table has loaded.");
+                }
+            }
+        });
+        
+        this.down('#grid_box').add(this.grid);
+    }
+    
+});
+Ext.define('Rally.technicalservices.accessible.Combobox', {
+    
+    extend: 'Ext.Component',
+    alias: 'widget.tsaccessiblecombobox',
+    
+    // Default configuration parameters
+    config: {
+        store: null,        
+        componentId : 'comboBox',
     },
         
-    // Calls the ready handler passed in via config
-    _componentReady: function() {    
-        if (this.componentHtml && Ext.isFunction(this.config.listeners.ready)) {
-            this.config.listeners.ready.call(this.config.listeners.scope);
-        }           
+    // Constructor
+    initComponent: function(){
+        this.callParent();
+    },
+
+    renderTpl: [
+        '<select id={componentId}>',
+        '<tpl for="data">',
+            '<option value="{data._ref}">{data.Name}</option>',
+        '</tpl>',
+        '</select>'
+    ],
+    
+    getTemplateArgs: function() {
+        data = this.store.getRecords();
+        return {
+            componentId: this.componentId,
+            data: this.store.getRecords()
+        }
+    },
+
+    beforeRender: function() {
+        var me = this;
+        me.callParent();
+        Ext.applyIf(me.renderData, me.getTemplateArgs());
     }
 });
 
 Ext.define('Rally.technicalservices.accessible.grid', {
     extend: 'Ext.Component',
-    requires: ['Rally.data.WsapiDataStore'],
     alias: 'widget.tsaccessiblegrid',
     config: {
         caption: null,
@@ -392,23 +224,30 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         this.callParent();
     },
     
-    renderTpl: [ 
-        '<table role="grid" border="1" cellspacing="1" cellpadding="1" summary="{summary}">',
+    renderTpl: [
+        '<table border="1" cellspacing="1" cellpadding="1" summary="{summary}">',
         '<caption>{caption}</caption>',
         '<thead><tr>',
         '<tpl for="columns">',
-        '<th id="{dataIndex}">{text}</th>',
+        '<th scope="col">{text}</th>',
         '</tpl>',
         '</tr></thead>',
-        '<tbody id="grid-data">',
+        '<tbody>',
             '<tpl for="data">',
-            '<tr role="row" id="row-{[values.data["ObjectID"]]}">',
-                '<tpl for="parent.columns">',
-                '<td role="gridcell" aria-labelledby="row-{[parent.data["ObjectID"]]} {dataIndex}" tabindex="0" id="row-{[parent.data["ObjectID"]]}-{dataIndex}">',
-                    '{[parent.data[values.dataIndex]]}',
-                '</td>',
-                '</tpl>',
-            '</tr>',
+                '<tr>',
+                    '<tpl for="parent.columns">',
+                        '<tpl if="xindex === 1">',
+                            '<th scope="row">',                           
+                            '{[parent.data[values.dataIndex]]}',
+                            '</th>',
+                        '</tpl>',                    
+                        '<tpl if="xindex &gt; 1">',
+                            '<td>',                          
+                            '{[parent.data[values.dataIndex]]}',
+                            '</td>',
+                        '</tpl>',
+                    '</tpl>',
+                '</tr>',
             '</tpl>',
         '</tbody>',
         '</table>'
@@ -417,6 +256,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     renderTpl_past: [ '{html}'],
     
     getTemplateArgs: function() {
+        
         return {
             summary: this.title,
             caption: this.caption || this.title,
@@ -429,7 +269,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         var me = this;
         me.callParent();
         
-        Ext.applyIf(me.renderData,me.getTemplateArgs());
+        Ext.applyIf(me.renderData, me.getTemplateArgs());
     }
     
 //    onRender: function(){
@@ -440,206 +280,6 @@ Ext.define('Rally.technicalservices.accessible.grid', {
 //            renderTo: me.renderTo
 //        });
 //    }
-});
-Ext.define('Rally.bak.technicalservices.accessible.grid', {
-    /**
-     * Container with an Accessible grid
-     *
-     *     @example
-     *     Ext.create('Rally.technicalservices.accessible.grid', {
-     *         componentId : 'my-grid',
-     *         caption: 'Accessible Rally Grid',
-     *         type: 'User Story',
-     *         fetch: ['ObjectID','FormattedID','Name'],
-     *         storeFilters: [
-     *                {
-     *                    property: 'State',
-     *                    value: 'Open'
-     *                }
-     *         ],
-     *         storeSorters: [
-     *                {
-     *                     property: 'Name',
-     *                     direction: 'ASC'
-     *                }
-     *         ],
-     *         storeContext: {
-     *              project: '/project/12345678910',
-     *              projectScopeUp: false,
-     *              projectScopeDown: false
-     *         },
-     *         renderTo: Ext.getBody().dom
-     *     });
-     */
-    
-    extend: 'Ext.panel.Panel',
-    requires: ['Rally.data.WsapiDataStore'],
-    alias: 'widget.tsaccessiblegrid',
-    
-    // Default Configuration parameters
-    config: {
-        title: 'Rally Accessible Grid',
-        width: 800,
-        html: '<p>World!</p>',
-        componentId: 'ts-accessible-grid',
-        caption: 'Rally Accessible Grid',
-        type: null,
-        wsapiStore: null,
-        fetch: ['ObjectID','FormattedID','Name'],
-        columnWidths: [100, 100, 100],
-        storeFilters: [{}],
-        storeSorters: [
-            {
-                property: 'Name',
-                direction: 'ASC'
-            }
-        ]
-    },
-    
-    // Constructor    
-    constructor: function(config) {        
-        
-        this.mergeConfig(config);
-           
-        Ext.create('Rally.data.WsapiDataStore', {
-            model: this.type,
-            autoLoad: true,
-            fetch: this.fetch,
-            listeners: {
-                load: this._onStoreLoaded,
-                scope: this
-            },
-            sorters: this.storeSorters
-        });
-        
-        this.callParent([this.config]);        
-    },
-    
-    initComponent: function() {
-        this.addEvents(
-            /**
-             * @event
-             * Fires when a button is pressed 
-             * @param {Rally.technicalservices.accessible.grid} this
-             * @param {Ext.button.Button} button The button that was pushed
-             * @param {String} string The object id of the row's record 
-             */
-            'buttonpressed'
-        );  
-    },
-    
-    // Called when WsapiDataStore is finished loading    
-    _onStoreLoaded: function(store, data) {
-        this.wsapiStore = store;
-        this._buildComponentHtml(store, data);
-    },
-    
-    // Uses data in WSAPI Data store to build a Panel containing a table
-    _buildComponentHtml: function(store, data) {        
-        
-        var itemHtml = '';
-        
-        // Define render templates for key markup   
-        var tableOpenTpl = new Ext.Template('<table id="{0}" role="grid" summary="{1}">');
-        var captionTpl = new Ext.Template('<caption>{0}</caption>');
-        var theadTpl = new Ext.Template('<thead>{0}</thead>');
-        var thColumnHeaderTpl = new Ext.Template('<th id="{0}">{1}</th>');
-        var tbodyOpenTpl = new Ext.Template('<tbody id="{0}">');
-        var columnWidthTpl = new Ext.Template('<col width="{0}">');
-        var trRowHeaderTpl = new Ext.Template('<td id="{0}" role="gridcell" aria-labelledby="{1}" tabindex="0">{2}</th>');
-        var rowIdTpl = new Ext.Template('row{0}');
-        var rowHeaderAriaLabelledByTpl = new Ext.Template('{0} row{1}'); // {0} = Column Name {1} = row number
-        var gridCellIdTpl = new Ext.Template('row{0}-{1}'); // {0} = row number, {1} = Column name
-        var trTpl = new Ext.Template('<tr role="row" id="{0}">'); // id="row1"
-        var tdHeadersTpl = new Ext.Template('{0} row{1}'); //{0} = Column Name; {1} = Row Number
-        var tdTpl = new Ext.Template('<td id="{0}" role="gridcell" headers="{1}" tabindex="0">{2}</td>')
-        var trCloseTpl = new Ext.Template('</tr>');
-        var tbodyCloseTpl = new Ext.Template('</tbody>');
-        var tableCloseTpl = new Ext.Template('</table>');
-        
-        // Field names of columns in the grid
-        var tableColumnNames = this.fetch;
-        
-        // Build Table
-        itemHtml += tableOpenTpl.apply([this.componentId, this.caption]);
-        itemHtml += captionTpl.apply([this.caption]);
-        
-        // Insert column widths
-        for (var i=0; i<tableColumnNames.length; i++) {
-            itemHtml += columnWidthTpl.apply(this.columnWidths[i]);
-        }
-        
-        // Build Table Header
-        var tableHeaderHtml = '';
-        for (var i=0; i<tableColumnNames.length; i++) {
-            tableHeaderHtml += thColumnHeaderTpl.apply([tableColumnNames[i].toLowerCase(), tableColumnNames[i]]);
-        }
-        itemHtml += theadTpl.apply([tableHeaderHtml]);
-        
-        // Table Body
-        itemHtml += tbodyOpenTpl.apply(['grid-data']);
-        
-        // Specify columnWidths
-        
-        // Build Table Rows
-        var rowId = null;
-        var columnNameLower = null;
-        var gridCellId = null;
-        var rowHeaderAriaLabelledBy = null;
-        var tdHeaders = null;
-        
-        for (var j=0; j<data.length; j++) {
-            // Row identifier
-            rowId = rowIdTpl.apply([j]);
-            itemHtml += trTpl.apply([rowId]);
-            record = data[j].data;
-            
-            // Apply column data
-            for (i = 0; i<tableColumnNames.length; i++) {                
-                columnNameLower = tableColumnNames[i].toLowerCase();
-                
-                // Apply render templates for Cell ID, Value
-                gridCellId = gridCellIdTpl.apply([j, columnNameLower]);
-                gridCellValue = record[tableColumnNames[i]];
-                
-                // Apply row header if first column
-                // Turns out the row header using aria-labelledby is confusing
-                // and just announces the aria-labelled by value in lieu of anything else
-                // better to go with regular <td> markup including headers (which do get announced)
-                if (i===0) {
-                    rowHeaderAriaLabelledBy = rowHeaderAriaLabelledByTpl.apply([columnNameLower, j]);
-                    itemHtml += trRowHeaderTpl.apply([gridCellId, rowHeaderAriaLabelledBy, gridCellValue]);
-                }                
-                // Otherwise it's a regular <td> gridcell
-                else {
-                    tdHeaders = tdHeadersTpl.apply([columnNameLower, j]);
-                    itemHtml += tdTpl.apply([gridCellId, tdHeaders, gridCellValue]);
-                }
-            }
-            // Close row
-            itemHtml += '</tr>';
-        }        
-        // Close Table
-        itemHtml += '</tbody></table>';
-        this.html = itemHtml;   
-        this._componentReady();
-        console.log(itemHtml);
-    },
-        
-    // Calls the ready handler passed in via config
-    _componentReady: function() {    
-        if (this.html && Ext.isFunction(this.config.listeners.ready)) {
-            this.config.listeners.ready.call(this.config.listeners.scope);
-        }           
-    },
-    
-    renderTpl: function() {
-        this.getGridHtml();
-    },
-    // Getter for the html for the grid
-    getGridHtml: function() {
-        return this.html;
-    }
 });
 /*
  * Straight override of parts of Ext components so we don't have to subclass them
