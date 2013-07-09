@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Jul 09 2013 08:49:38 GMT-0700 (PDT) -->
+    <!--  Build Date: Tue Jul 09 2013 11:00:11 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -147,8 +147,8 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 load: function(store,data,success){
-                    // this._makeGrid(store);
-                    this._makeEditor(data[0]);
+                    this._makeGrid(store);
+                    //this._makeEditor(data[0]);
                 }
             }
         });
@@ -170,7 +170,11 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 afterrender: function() {
-                    this._alert("The user story table has loaded.");
+                    this._alert("The user story table has loaded and focus is on the first story.");
+                },
+                recordeditclick: function(grid, recordToEdit) {
+                    this._log(recordToEdit);
+                    this._makeEditor(recordToEdit);
                 }
             }
         });
@@ -186,19 +190,21 @@ Ext.define('CustomApp', {
         }
         
         
-        var cols = [
+        
+        this.fields = [
             {text:'Name', dataIndex:'Name'},
             {text:'Schedule State', dataIndex:'ScheduleState' }
             ];
         
+        // TODO: extract the editor as a class and pass it fields and listeners
         var items = [];
         
         items.push({ xtype:'container',html:'<h1>Item Editor Region</h1>'});
         
-        for (var i=0; i<cols.length; i++) {            
+        for (var i=0; i<this.fields.length; i++) {            
             var thisItem = Ext.create('Rally.ui.TextField',{
-                fieldLabel: cols[i].text,
-                value: record.get(cols[i].dataIndex),
+                fieldLabel: this.fields[i].text,
+                value: record.get(this.fields[i].dataIndex),
                 itemId: "field_" + i
             });
             items.push(thisItem);
@@ -211,7 +217,7 @@ Ext.define('CustomApp', {
             xtype: 'button',
             text: 'Save Edits',
             buttonLabel : 'Save Edits',
-            handler: this._saveRecord,
+            handler: function() { this._saveRecord(record) },
             scope: this            
         });
         
@@ -225,8 +231,25 @@ Ext.define('CustomApp', {
 
     },
     
-    _saveRecord: function() {
-        this._log('_saveRecord');        
+    _saveRecord: function(record) {
+        this._log('_saveRecord');
+        var me = this;
+        
+        // TODO: have the editor return the new values
+        var items = this.recordEditor.items;
+        items.each( function(item) {
+            if (item.value && item.itemId ) {
+                var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
+                var field_name = me.fields[index].dataIndex;
+                record.set(field_name, item.value);
+                me._log([item.value, field_name]);
+            }
+        });
+        
+        record.save();
+        //TODO: refresh table take the user to WHERE?
+        //TODO: fireevent onsave so that we can associate an alert with it
+        this._alert("Record saved");
     }
     
 });
@@ -281,12 +304,22 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     initComponent: function(){
         this.callParent();
+        this.addEvents(
+            /**
+             * @event recordeditclick
+             * Fires when the edit button for a record is clicked
+             * @param {Rally.technicalservices.accessible.grid} this
+             * @param {Ext.data.Model} Rally record for the selected row
+             */
+            'recordeditclick'
+        );
     },
     
     renderTpl: [
         '<table border="1" cellspacing="1" cellpadding="1" summary="{summary}">',
         '<caption>{caption}</caption>',
         '<thead><tr>',
+        '<th scope="col">Edit</th>',
         '<tpl for="columns">',
         '<th scope="col">{text}</th>',
         '</tpl>',
@@ -294,6 +327,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         '<tbody>',
             '<tpl for="data">',
                 '<tr>',
+                '<td><button id="button-{#}">{data.FormattedID} Edit</button></td>',
                     '<tpl for="parent.columns">',
                         '<tpl if="xindex === 1">',
                             '<th scope="row">',                           
@@ -329,8 +363,29 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         me.callParent();
         
         Ext.applyIf(me.renderData, me.getTemplateArgs());
-    }
+    },
     
+    afterRender: function() {
+        var me = this;
+        for (var i=1; i<=this.store.getRecords().length; i++) {
+            Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
+        }
+        var first_button = Ext.get('button-1');
+        if ( first_button ) {
+            first_button.focus();
+        }
+    },
+    
+    _editButtonClickHandler: function(extEventObject, buttonEl, eOpts) {
+        var buttonId = buttonEl.id;
+        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 ) - 1;
+        
+        var recordToEdit = this.store.getAt(rowIndex);
+
+        this.fireEvent('recordeditclick', this, recordToEdit);
+     
+    }
+   
 });
 /*
  * Straight override of parts of Ext components so we don't have to subclass them

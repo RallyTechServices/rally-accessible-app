@@ -136,8 +136,8 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 load: function(store,data,success){
-                    // this._makeGrid(store);
-                    this._makeEditor(data[0]);
+                    this._makeGrid(store);
+                    //this._makeEditor(data[0]);
                 }
             }
         });
@@ -159,7 +159,11 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 afterrender: function() {
-                    this._alert("The user story table has loaded.");
+                    this._alert("The user story table has loaded and focus is on the first story.");
+                },
+                recordeditclick: function(grid, recordToEdit) {
+                    this._log(recordToEdit);
+                    this._makeEditor(recordToEdit);
                 }
             }
         });
@@ -175,19 +179,21 @@ Ext.define('CustomApp', {
         }
         
         
-        var cols = [
+        
+        this.fields = [
             {text:'Name', dataIndex:'Name'},
             {text:'Schedule State', dataIndex:'ScheduleState' }
             ];
         
+        // TODO: extract the editor as a class and pass it fields and listeners
         var items = [];
         
         items.push({ xtype:'container',html:'<h1>Item Editor Region</h1>'});
         
-        for (var i=0; i<cols.length; i++) {            
+        for (var i=0; i<this.fields.length; i++) {            
             var thisItem = Ext.create('Rally.ui.TextField',{
-                fieldLabel: cols[i].text,
-                value: record.get(cols[i].dataIndex),
+                fieldLabel: this.fields[i].text,
+                value: record.get(this.fields[i].dataIndex),
                 itemId: "field_" + i
             });
             items.push(thisItem);
@@ -200,7 +206,7 @@ Ext.define('CustomApp', {
             xtype: 'button',
             text: 'Save Edits',
             buttonLabel : 'Save Edits',
-            handler: this._saveRecord,
+            handler: function() { this._saveRecord(record) },
             scope: this            
         });
         
@@ -214,8 +220,25 @@ Ext.define('CustomApp', {
 
     },
     
-    _saveRecord: function() {
-        this._log('_saveRecord');        
+    _saveRecord: function(record) {
+        this._log('_saveRecord');
+        var me = this;
+        
+        // TODO: have the editor return the new values
+        var items = this.recordEditor.items;
+        items.each( function(item) {
+            if (item.value && item.itemId ) {
+                var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
+                var field_name = me.fields[index].dataIndex;
+                record.set(field_name, item.value);
+                me._log([item.value, field_name]);
+            }
+        });
+        
+        record.save();
+        //TODO: refresh table take the user to WHERE?
+        //TODO: fireevent onsave so that we can associate an alert with it
+        this._alert("Record saved");
     }
     
 });

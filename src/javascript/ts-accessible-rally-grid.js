@@ -10,12 +10,22 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     initComponent: function(){
         this.callParent();
+        this.addEvents(
+            /**
+             * @event recordeditclick
+             * Fires when the edit button for a record is clicked
+             * @param {Rally.technicalservices.accessible.grid} this
+             * @param {Ext.data.Model} Rally record for the selected row
+             */
+            'recordeditclick'
+        );
     },
     
     renderTpl: [
         '<table border="1" cellspacing="1" cellpadding="1" summary="{summary}">',
         '<caption>{caption}</caption>',
         '<thead><tr>',
+        '<th scope="col">Edit</th>',
         '<tpl for="columns">',
         '<th scope="col">{text}</th>',
         '</tpl>',
@@ -23,6 +33,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         '<tbody>',
             '<tpl for="data">',
                 '<tr>',
+                '<td><button id="button-{#}">{data.FormattedID} Edit</button></td>',
                     '<tpl for="parent.columns">',
                         '<tpl if="xindex === 1">',
                             '<th scope="row">',                           
@@ -58,6 +69,27 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         me.callParent();
         
         Ext.applyIf(me.renderData, me.getTemplateArgs());
-    }
+    },
     
+    afterRender: function() {
+        var me = this;
+        for (var i=1; i<=this.store.getRecords().length; i++) {
+            Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
+        }
+        var first_button = Ext.get('button-1');
+        if ( first_button ) {
+            first_button.focus();
+        }
+    },
+    
+    _editButtonClickHandler: function(extEventObject, buttonEl, eOpts) {
+        var buttonId = buttonEl.id;
+        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 ) - 1;
+        
+        var recordToEdit = this.store.getAt(rowIndex);
+
+        this.fireEvent('recordeditclick', this, recordToEdit);
+     
+    }
+   
 });
