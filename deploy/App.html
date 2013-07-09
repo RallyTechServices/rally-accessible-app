@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Jul 08 2013 20:54:46 GMT-0700 (PDT) -->
+    <!--  Build Date: Tue Jul 09 2013 08:30:13 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -182,7 +182,10 @@ Ext.define('CustomApp', {
         }
         
         
-        var cols = [{text:'Name', dataIndex:'Name'}];
+        var cols = [
+            {text:'Name', dataIndex:'Name'},
+            {text:'Schedule State', dataIndex:'ScheduleState' }
+            ];
         
         var items = [];
         

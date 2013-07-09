@@ -171,7 +171,10 @@ Ext.define('CustomApp', {
         }
         
         
-        var cols = [{text:'Name', dataIndex:'Name'}];
+        var cols = [
+            {text:'Name', dataIndex:'Name'},
+            {text:'Schedule State', dataIndex:'ScheduleState' }
+            ];
         
         var items = [];
         
