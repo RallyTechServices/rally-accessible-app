@@ -95,13 +95,17 @@ Ext.define('CustomApp', {
         this.down('#selector_box').add({
             xtype: 'button',
             text: 'Get Stories',
+            itemId: 'get_stories_button',
             buttonLabel : 'Get Stories',
             handler: this._getStories,
             scope: this
         });   
 
         Ext.get('alert_area').set({role:'alert'});
-        this._alert("The application is loaded and available in an iFrame on the page. Please navigate to the iFrame for a more full description.");
+        
+        this.down('#get_stories_button').focus();
+        this._alert("The application is loaded and available in an iFrame on the page. " +
+                "Focus should be on the Get Stories button, which is after the project selector combo box.");
     },
     
     

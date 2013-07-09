@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Jul 09 2013 08:30:13 GMT-0700 (PDT) -->
+    <!--  Build Date: Tue Jul 09 2013 08:49:38 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -106,13 +106,17 @@ Ext.define('CustomApp', {
         this.down('#selector_box').add({
             xtype: 'button',
             text: 'Get Stories',
+            itemId: 'get_stories_button',
             buttonLabel : 'Get Stories',
             handler: this._getStories,
             scope: this
         });   
 
         Ext.get('alert_area').set({role:'alert'});
-        this._alert("The application is loaded and available in an iFrame on the page. Please navigate to the iFrame for a more full description.");
+        
+        this.down('#get_stories_button').focus();
+        this._alert("The application is loaded and available in an iFrame on the page. " +
+                "Focus should be on the Get Stories button, which is after the project selector combo box.");
     },
     
     
