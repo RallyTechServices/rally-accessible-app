@@ -60,12 +60,4 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         Ext.applyIf(me.renderData, me.getTemplateArgs());
     }
     
-//    onRender: function(){
-//        var me = this;
-//        this.callParent(arguments);
-//        Ext.create('Ext.container.Container',{
-//            html: 'hi!',
-//            renderTo: me.renderTo
-//        });
-//    }
 });

@@ -6,13 +6,15 @@ Ext.define('CustomApp', {
     projectStore: null,
     grid: null,
 
+    table_size: 10,
     items: [ 
         {xtype:'container', items: [ 
             {xtype: 'container', html: '<h1>Top of the App</h1> ' +
                     '<p>This app allows a user to select a project and find stories within that project. ' +
-                    'It will present a table of results after the button is pushed.</p>' }
+                    'Below this paragraph, there is a combobox listing projects and a button that starts the query. ' +
+                    'The app will generate a table of the first ten user stories for the selected project.</p>' }
         ]},
-        {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }},
+        {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } },
         {xtype:'container',itemId:'grid_box' },
         {xtype:'container', items: [
             {xtype:'container',html:'<h1>Alerts</h1>'},
@@ -98,17 +100,15 @@ Ext.define('CustomApp', {
         });   
 
         Ext.get('alert_area').set({role:'alert'});
-        this._alert("The application is loaded and available in an iFrame on the page.  Select a project from the combobox and press the button to find stories.");
+        this._alert("The application is loaded and available in an iFrame on the page. Please navigate to the iFrame for a more full description.");
     },
     
     
     // Loads/refreshes grid with subset of Stories from selected project
     _getStories: function() {
         this._log('_getStories');
+        var me = this;
         // Get the ref of the selected project
-
-        this._log(projectSelector.value);
-
         var selectedProjectRef = projectSelector.value;
         var selectedProjectName = projectSelector.options[projectSelector.selectedIndex].text;
         this._alert("Loading Stories for " + selectedProjectName + " project." );
@@ -120,6 +120,8 @@ Ext.define('CustomApp', {
         
         var store = Ext.create('Rally.data.WsapiDataStore',{
             model: 'User Story',
+            limit: me.table_size,
+            pageSize: me.table_size,
             context: {
                 project: selectedProjectRef,
                 projectScopeUp: false,
@@ -135,7 +137,7 @@ Ext.define('CustomApp', {
         });
         
     },
-
+    
     _makeGrid: function(store) {
         if (this.grid) { this.grid.destroy(); }
         
