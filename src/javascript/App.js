@@ -16,6 +16,7 @@ Ext.define('CustomApp', {
         ]},
         {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } },
         {xtype:'container',itemId:'grid_box' },
+        {xtype:'container',itemId:'editor_box' },
         {xtype:'container', items: [
             {xtype:'container',html:'<h1>Alerts</h1>'},
             {xtype:'container',itemId:'alert_area',id:'alert_area'}
@@ -131,7 +132,8 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 load: function(store,data,success){
-                    this._makeGrid(store);
+                    // this._makeGrid(store);
+                    this._makeEditor(data[0]);
                 }
             }
         });
@@ -159,6 +161,54 @@ Ext.define('CustomApp', {
         });
         
         this.down('#grid_box').add(this.grid);
+    },
+    
+    _makeEditor: function(record) {
+        this._log("_makeEditor");
+        var me = this;
+        if (this.recordEditor) {
+            this.recordEditor.destroy();
+        }
+        
+        
+        var cols = [{text:'Name', dataIndex:'Name'}];
+        
+        var items = [];
+        
+        items.push({ xtype:'container',html:'<h1>Item Editor Region</h1>'});
+        
+        for (var i=0; i<cols.length; i++) {            
+            var thisItem = Ext.create('Rally.ui.TextField',{
+                fieldLabel: cols[i].text,
+                value: record.get(cols[i].dataIndex),
+                itemId: "field_" + i
+            });
+            items.push(thisItem);
+        }   
+        
+        
+        
+        // Add a save button
+        items.push({
+            xtype: 'button',
+            text: 'Save Edits',
+            buttonLabel : 'Save Edits',
+            handler: this._saveRecord,
+            scope: this            
+        });
+        
+        this.recordEditor = Ext.create('Ext.Container', {
+            items: items
+        }); 
+        this.down('#editor_box').add(this.recordEditor);
+        
+        this._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
+        this.down('#field_0').focus(true);
+
+    },
+    
+    _saveRecord: function() {
+        this._log('_saveRecord');        
     }
     
 });
