@@ -57,5 +57,8 @@ that you can connect to the Rally server so that we can use Rally-supplied JS.  
 need another connection to Rally beyond that grabbing of the SDK.  If a test interacts with Rally _data_, it should be a part of
 the "slow" tests.
 
+Have not yet gotten jasmine to run headless due to permissions -- type grunt jasmine to generate the _SpecRunner.html that can be
+used for looking at the tests manually.  Open a browser and log into Rally, then open the _SpecRunner.html file to test.  
+
 
 
