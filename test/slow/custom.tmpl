@@ -35,6 +35,17 @@
         Rally.onReady(function () {
             Rally.loadScripts(<%= JSON.stringify(options.js_files) %>,
             function() {
+            
+                var page = require('webpage').create(),
+                    system = require('system'),
+                    t, address;
+                
+                page.settings.userName = 'test';
+                page.settings.password = 'test';
+            
+                Rally.launchApp('TestApp', {
+                    name: 'Test Accessible App'
+                });
                 
                 var jasmineEnv = jasmine.getEnv();
 

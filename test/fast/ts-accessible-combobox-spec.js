@@ -1,5 +1,6 @@
 describe( "Accessible Combobox", function(){
     describe("When testing simple configurations", function(){
+        console.log('here');
         it("is happy with defaults",function(){
             var cb = Ext.create('Rally.technicalservices.accessible.Combobox',{});
             expect(cb).not.toBe(null);
@@ -75,6 +76,6 @@ describe( "Accessible Combobox", function(){
             expect(options[1].value).toEqual("/mock/12346");
             expect(options[1].text).toEqual('second');
         });
-        
+       
     });
 });

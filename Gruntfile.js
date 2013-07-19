@@ -30,12 +30,28 @@ module.exports = function(grunt) {
         },
         jasmine: {
             fast: {
+                src: 'src/**/*.js',
                 options: {
                     specs: 'test/fast/*-spec.js',
                     helpers: 'test/fast/*Helper.js',
                     template: 'test/fast/custom.tmpl',
-                    src: 'src/**/*.js',
-                    templateOptions: config
+                    templateOptions: config,
+                    junit: { 
+                        path: 'test/logs/fast'
+                    }
+                }
+            },
+            slow: {
+                src: 'src/**/*.js',
+                options: {
+                    specs: 'test/slow/*-spec.js',
+                    helpers: 'test/slow/*Helper.js',
+                    template: 'test/slow/custom.tmpl',
+                    templateOptions: config,
+                    keepRunner: true,
+                    junit: { 
+                        path: 'test/logs/slow'
+                    }
                 }
             }
         }
@@ -49,4 +65,8 @@ module.exports = function(grunt) {
     grunt.registerTask('default', ['template:prod']);
     // debug creates an html file that can be loaded on its own without copying and pasting into Rally
     grunt.registerTask('debug', ['template:dev']);
+    
+    grunt.registerTask('test-fast', ['jasmine:fast']);
+    grunt.registerTask('test-slow', ['jasmine:slow']);
+
 };

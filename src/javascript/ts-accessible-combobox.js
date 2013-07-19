@@ -39,13 +39,12 @@
         var me = this;
         var data = [];
         var records = this.store.getRecords();
-        records.each(function(record){
+        Ext.Array.each(records, function(record){
             data.push({
                 _ref: record.get('_ref'),
                 displayField: record.get(me.displayField)
             });
         });
-        console.log(data);
         return {
             componentId: this.componentId,
             items: data
