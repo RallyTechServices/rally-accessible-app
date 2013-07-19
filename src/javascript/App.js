@@ -80,11 +80,10 @@ Ext.define('CustomApp', {
                     direction: 'ASC'
                 }
             ]
-        });                                
+        });
     },
     
     _onProjectStoreLoaded: function(store, data) {
-        
         this.projectSelector = Ext.create('Rally.technicalservices.accessible.Combobox', {
             store: store,
             componentId: 'projectSelector'

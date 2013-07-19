@@ -1,5 +1,11 @@
-Ext.define('Rally.technicalservices.accessible.Combobox', {
-    
+/**
+ * A combobox that takes a store and displays a dropdown that doesn't have
+ * all the cruft that interferes with a Jaws reader.
+ * 
+ * The drop-down options display name and provide the Rally ref.
+ * 
+ */
+ Ext.define('Rally.technicalservices.accessible.Combobox', {
     extend: 'Ext.Component',
     alias: 'widget.tsaccessiblecombobox',
     
@@ -7,6 +13,13 @@ Ext.define('Rally.technicalservices.accessible.Combobox', {
     config: {
         store: null,        
         componentId : 'comboBox',
+        /**
+         * @cfg {String}
+         * The underlying data field name to bind to this ComboBox.
+         * 
+         * Defaults to 'Name'
+         */
+        displayField: 'Name'
     },
         
     // Constructor
@@ -16,17 +29,26 @@ Ext.define('Rally.technicalservices.accessible.Combobox', {
 
     renderTpl: [
         '<select id={componentId}>',
-        '<tpl for="data">',
-            '<option value="{data._ref}">{data.Name}</option>',
+        '<tpl for="items">',
+            '<option value="{_ref}">{displayField}</option>',
         '</tpl>',
         '</select>'
     ],
     
     getTemplateArgs: function() {
-        data = this.store.getRecords();
+        var me = this;
+        var data = [];
+        var records = this.store.getRecords();
+        records.each(function(record){
+            data.push({
+                _ref: record.get('_ref'),
+                displayField: record.get(me.displayField)
+            });
+        });
+        console.log(data);
         return {
             componentId: this.componentId,
-            data: this.store.getRecords()
+            items: data
         }
     },
 
