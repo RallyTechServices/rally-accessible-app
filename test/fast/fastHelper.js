@@ -11,3 +11,17 @@ Ext.define('mockWsapiDataStore',{
         return records;
     }
 });
+
+var simple_store = Ext.create('mockWsapiDataStore',{
+    data: [
+        { Name: 'first',  _ref: '/mock/12345' },
+        { Name: 'second', _ref: '/mock/12346' }
+    ]
+});
+
+var alternate_name_store = Ext.create('mockWsapiDataStore',{
+    data: [
+        { DisplayName: 'first',  _ref: '/mock/12345' },
+        { DisplayName: 'second', _ref: '/mock/12346' }
+    ]
+});

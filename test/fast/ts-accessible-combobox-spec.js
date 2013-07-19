@@ -1,6 +1,5 @@
 describe( "Accessible Combobox", function(){
     describe("When testing simple configurations", function(){
-        console.log('here');
         it("is happy with defaults",function(){
             var cb = Ext.create('Rally.technicalservices.accessible.Combobox',{});
             expect(cb).not.toBe(null);
@@ -20,19 +19,6 @@ describe( "Accessible Combobox", function(){
     
     describe("When given a store", function() {
         var cb;
-        var simple_store = Ext.create('mockWsapiDataStore',{
-            data: [
-                { Name: 'first',  _ref: '/mock/12345' },
-                { Name: 'second', _ref: '/mock/12346' }
-            ]
-        });
-        
-        var alternate_name_store = Ext.create('mockWsapiDataStore',{
-            data: [
-                { DisplayName: 'first',  _ref: '/mock/12345' },
-                { DisplayName: 'second', _ref: '/mock/12346' }
-            ]
-        });
         
         beforeEach( function() {
             if ( Ext.get("componentTestArea") ) { 

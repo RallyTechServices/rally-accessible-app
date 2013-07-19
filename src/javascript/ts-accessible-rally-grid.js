@@ -36,13 +36,13 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                 '<td><button id="button-{#}">{data.FormattedID} Edit</button></td>',
                     '<tpl for="parent.columns">',
                         '<tpl if="xindex === 1">',
-                            '<th scope="row">',                           
-                            '{[parent.data[values.dataIndex]]}',
+                            '<th scope="row">',
+                            '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "..." ]}',
                             '</th>',
-                        '</tpl>',                    
+                        '</tpl>',
                         '<tpl if="xindex &gt; 1">',
-                            '<td>',                          
-                            '{[parent.data[values.dataIndex]]}',
+                            '<td>',
+                            '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "..." ]}',
                             '</td>',
                         '</tpl>',
                     '</tpl>',
@@ -55,12 +55,18 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     renderTpl_past: [ '{html}'],
     
     getTemplateArgs: function() {
-        
+        var data = [];
+        if (this.store) {
+            data = this.store.getRecords();
+        }
+        if ( data.length == 0 ) {
+            this.renderTpl = "No records found";
+        }
         return {
             summary: this.title,
             caption: this.caption || this.title,
             columns: this.columns,
-            data: this.store.getRecords()
+            data: data
         }
     },
     
@@ -73,12 +79,14 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     afterRender: function() {
         var me = this;
-        for (var i=1; i<=this.store.getRecords().length; i++) {
-            Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
-        }
-        var first_button = Ext.get('button-1');
-        if ( first_button ) {
-            first_button.focus();
+        if ( this.store ) {
+            for (var i=1; i<=this.store.getRecords().length; i++) {
+                Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
+            }
+            var first_button = Ext.get('button-1');
+            if ( first_button ) {
+                first_button.focus();
+            }
         }
     },
     

@@ -36,6 +36,7 @@ module.exports = function(grunt) {
                     helpers: 'test/fast/*Helper.js',
                     template: 'test/fast/custom.tmpl',
                     templateOptions: config,
+                    keepRunner: true,
                     junit: { 
                         path: 'test/logs/fast'
                     }
