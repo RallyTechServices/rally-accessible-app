@@ -63,6 +63,7 @@ Ext.define('CustomApp', {
         this.projectStore = Ext.create('Rally.data.WsapiDataStore', {
             model: 'Project',
             autoLoad: true,
+            limit: 400,
             fetch: ['ObjectID', 'Name'],
             listeners: {
                 load: this._onProjectStoreLoaded,
@@ -131,12 +132,12 @@ Ext.define('CustomApp', {
                 projectScopeUp: false,
                 projectScopeDown: false
             },
+            filters: [ { property: 'Owner', value: 'currentuser' }],
             autoLoad:true,
             listeners: {
                 scope: this,
                 load: function(store,data,success){
                     this._makeGrid(store);
-                    //this._makeEditor(data[0]);
                 }
             }
         });
@@ -186,17 +187,17 @@ Ext.define('CustomApp', {
             fields: me.fields,
             record: record
         });
-
-//        // Add a save button
-//        items.push({
-//            xtype: 'button',
-//            text: 'Save Edits',
-//            buttonLabel : 'Save Edits',
-//            handler: function() { this._saveRecord(record) },
-//            scope: this
-//        });
 //         
         this.down('#editor_box').add(this.recordEditor);
+        
+        if ( this.save_button ) { this.save_button.destroy(); }
+        this.save_button = this.down('#editor_box').add({
+                xtype: 'button',
+                text: 'Save Edits',
+                buttonLabel : 'Save Edits',
+                handler: function() { this._saveRecord(record) },
+                scope: this
+            });
         
         this._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
         this.down('#field_0').focus(true);

@@ -68,6 +68,16 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             } else {
                 items = field_objects;
             }
+            
+            // TODO: add buttons so that we can provide listeners
+            // add a save button
+//            items.push({
+//                xtype: 'button',
+//                text: 'Save Edits',
+//                buttonLabel : 'Save Edits',
+//                handler: function() { this._saveRecord(record) },
+//                scope: this
+//            });
         }
         /**
          * The MixedCollection containing all the child items of this container.
