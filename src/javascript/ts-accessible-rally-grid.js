@@ -1,10 +1,30 @@
 Ext.define('Rally.technicalservices.accessible.grid', {
-    extend: 'Ext.Component',
+    extend: 'Ext.container.Container',
     alias: 'widget.tsaccessiblegrid',
     config: {
+         /**
+         * @cfg {String} 
+         * Embedded into the table definition as the caption
+         * 
+         * Defaults to the value of title
+         */
         caption: null,
+         /**
+         * @cfg {String} 
+         * Embedded into the table definition as the summary
+         * 
+         * Defaults to 'Grid Title'
+         */
         title: 'Grid Title',
+        /**
+         * @cfg {@Rally.data.WsapiDataStoreView} Must be a WsapiDataStore
+         * 
+         */
         store: null,
+        /**
+         * @cfg {Array}
+         * Accepts {@link Ext.grid.Panel} column configs
+         */
         columns: []
     },
     

@@ -9,16 +9,16 @@ Ext.define('CustomApp', {
     table_size: 10,
     items: [ 
         {xtype:'container', items: [ 
-            {xtype: 'container', html: '<h1>Top of the App</h1> ' +
+            {xtype: 'container', html: '<h2>Top of the App</h2> ' +
                     '<p>This app allows a user to select a project and find stories within that project. ' +
                     'Below this paragraph, there is a combobox listing projects and a button that starts the query. ' +
                     'The app will generate a table of the first ten user stories for the selected project.</p>' }
         ]},
         {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } },
-        {xtype:'container',itemId:'grid_box' },
-        {xtype:'container',itemId:'editor_box' },
+        {xtype:'container',itemId:'grid_box', items: [{xtype:'container',html:'<h3>User Story Grid Area</h3>'}]},
+        {xtype:'container',itemId:'editor_box', items: [{xtype:'container',html:'<h3>Edit Area</h3>'}] },
         {xtype:'container', items: [
-            {xtype:'container',html:'<h1>Alerts</h1>'},
+            {xtype:'container',html:'<h2>Alerts</h2>'},
             {xtype:'container',itemId:'alert_area',id:'alert_area'}
         ]}
     ],
@@ -177,41 +177,25 @@ Ext.define('CustomApp', {
             this.recordEditor.destroy();
         }
         
-        
-        
         this.fields = [
             {text:'Name', dataIndex:'Name'},
             {text:'Schedule State', dataIndex:'ScheduleState' }
             ];
         
-        // TODO: extract the editor as a class and pass it fields and listeners
-        var items = [];
-        
-        items.push({ xtype:'container',html:'<h1>Item Editor Region</h1>'});
-        
-        for (var i=0; i<this.fields.length; i++) {            
-            var thisItem = Ext.create('Rally.ui.TextField',{
-                fieldLabel: this.fields[i].text,
-                value: record.get(this.fields[i].dataIndex),
-                itemId: "field_" + i
-            });
-            items.push(thisItem);
-        }   
-        
-        
-        
-        // Add a save button
-        items.push({
-            xtype: 'button',
-            text: 'Save Edits',
-            buttonLabel : 'Save Edits',
-            handler: function() { this._saveRecord(record) },
-            scope: this            
+        this.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
+            fields: me.fields,
+            record: record
         });
-        
-        this.recordEditor = Ext.create('Ext.Container', {
-            items: items
-        }); 
+
+//        // Add a save button
+//        items.push({
+//            xtype: 'button',
+//            text: 'Save Edits',
+//            buttonLabel : 'Save Edits',
+//            handler: function() { this._saveRecord(record) },
+//            scope: this
+//        });
+//         
         this.down('#editor_box').add(this.recordEditor);
         
         this._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
