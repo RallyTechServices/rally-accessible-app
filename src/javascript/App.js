@@ -154,7 +154,8 @@ Ext.define('CustomApp', {
             columns: [
                 {text:'ID', dataIndex:'FormattedID'},
                 {text:'Name', dataIndex:'Name'},
-                {text:'Schedule State', dataIndex:'ScheduleState'}
+                {text:'Schedule State', dataIndex:'ScheduleState'},
+                {text:'Size', dataIndex:'PlanEstimate' }
             ],
             listeners: {
                 scope: this,
