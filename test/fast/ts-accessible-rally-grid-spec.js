@@ -86,7 +86,9 @@ describe("Accessible Grid", function(){
             
             var data_cells = rows[1].childNodes;
             expect(Ext.dom.Query.select('button',data_cells[0]).length).toEqual(1);
-            expect(data_cells[1].nodeName).toEqual('TH');
+            expect(data_cells[0].nodeName).toEqual('TH');
+            expect(data_cells[0].getAttribute('scope')).toEqual("row");
+            expect(data_cells[1].nodeName).toEqual('TD');
             expect(data_cells[1].innerHTML).toEqual('/mock/12345');
             expect(data_cells[2].innerHTML).toEqual('first');
             
@@ -106,7 +108,9 @@ describe("Accessible Grid", function(){
             expect(rows.length).toEqual(3); // header + two data rows
             
             var data_cells = rows[1].childNodes;
-            expect(data_cells[1].nodeName).toEqual('TH');
+            expect(data_cells[0].nodeName).toEqual('TH');
+            expect(data_cells[0].getAttribute('scope')).toEqual("row");
+            expect(data_cells[1].nodeName).toEqual('TD');
             expect(data_cells[1].innerHTML).toEqual('/mock/12345');
             expect(data_cells[2].innerHTML).toEqual('...');
             

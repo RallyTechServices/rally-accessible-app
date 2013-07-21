@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Jul 09 2013 11:00:11 GMT-0700 (PDT) -->
+    <!--  Build Date: Sat Jul 20 2013 16:32:53 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -20,16 +20,16 @@ Ext.define('CustomApp', {
     table_size: 10,
     items: [ 
         {xtype:'container', items: [ 
-            {xtype: 'container', html: '<h1>Top of the App</h1> ' +
+            {xtype: 'container', html: '<h2>Top of the App</h2> ' +
                     '<p>This app allows a user to select a project and find stories within that project. ' +
                     'Below this paragraph, there is a combobox listing projects and a button that starts the query. ' +
                     'The app will generate a table of the first ten user stories for the selected project.</p>' }
         ]},
         {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } },
-        {xtype:'container',itemId:'grid_box' },
-        {xtype:'container',itemId:'editor_box' },
+        {xtype:'container',itemId:'grid_box', items: [{xtype:'container',html:'<h3>User Story Grid Area</h3>'}]},
+        {xtype:'container',itemId:'editor_box', items: [{xtype:'container',html:'<h3>Edit Area</h3>'}] },
         {xtype:'container', items: [
-            {xtype:'container',html:'<h1>Alerts</h1>'},
+            {xtype:'container',html:'<h2>Alerts</h2>'},
             {xtype:'container',itemId:'alert_area',id:'alert_area'}
         ]}
     ],
@@ -74,6 +74,7 @@ Ext.define('CustomApp', {
         this.projectStore = Ext.create('Rally.data.WsapiDataStore', {
             model: 'Project',
             autoLoad: true,
+            limit: 400,
             fetch: ['ObjectID', 'Name'],
             listeners: {
                 load: this._onProjectStoreLoaded,
@@ -91,11 +92,10 @@ Ext.define('CustomApp', {
                     direction: 'ASC'
                 }
             ]
-        });                                
+        });
     },
     
     _onProjectStoreLoaded: function(store, data) {
-        
         this.projectSelector = Ext.create('Rally.technicalservices.accessible.Combobox', {
             store: store,
             componentId: 'projectSelector'
@@ -143,12 +143,12 @@ Ext.define('CustomApp', {
                 projectScopeUp: false,
                 projectScopeDown: false
             },
+            filters: [ { property: 'Owner', value: 'currentuser' }],
             autoLoad:true,
             listeners: {
                 scope: this,
                 load: function(store,data,success){
                     this._makeGrid(store);
-                    //this._makeEditor(data[0]);
                 }
             }
         });
@@ -165,7 +165,8 @@ Ext.define('CustomApp', {
             columns: [
                 {text:'ID', dataIndex:'FormattedID'},
                 {text:'Name', dataIndex:'Name'},
-                {text:'Schedule State', dataIndex:'ScheduleState'}
+                {text:'Schedule State', dataIndex:'ScheduleState'},
+                {text:'Size', dataIndex:'PlanEstimate' }
             ],
             listeners: {
                 scope: this,
@@ -189,42 +190,26 @@ Ext.define('CustomApp', {
             this.recordEditor.destroy();
         }
         
-        
-        
         this.fields = [
             {text:'Name', dataIndex:'Name'},
             {text:'Schedule State', dataIndex:'ScheduleState' }
             ];
         
-        // TODO: extract the editor as a class and pass it fields and listeners
-        var items = [];
-        
-        items.push({ xtype:'container',html:'<h1>Item Editor Region</h1>'});
-        
-        for (var i=0; i<this.fields.length; i++) {            
-            var thisItem = Ext.create('Rally.ui.TextField',{
-                fieldLabel: this.fields[i].text,
-                value: record.get(this.fields[i].dataIndex),
-                itemId: "field_" + i
-            });
-            items.push(thisItem);
-        }   
-        
-        
-        
-        // Add a save button
-        items.push({
-            xtype: 'button',
-            text: 'Save Edits',
-            buttonLabel : 'Save Edits',
-            handler: function() { this._saveRecord(record) },
-            scope: this            
+        this.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
+            fields: me.fields,
+            record: record
         });
-        
-        this.recordEditor = Ext.create('Ext.Container', {
-            items: items
-        }); 
+//         
         this.down('#editor_box').add(this.recordEditor);
+        
+        if ( this.save_button ) { this.save_button.destroy(); }
+        this.save_button = this.down('#editor_box').add({
+                xtype: 'button',
+                text: 'Save Edits',
+                buttonLabel : 'Save Edits',
+                handler: function() { this._saveRecord(record) },
+                scope: this
+            });
         
         this._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
         this.down('#field_0').focus(true);
@@ -253,8 +238,14 @@ Ext.define('CustomApp', {
     }
     
 });
-Ext.define('Rally.technicalservices.accessible.Combobox', {
-    
+/**
+ * A combobox that takes a store and displays a dropdown that doesn't have
+ * all the cruft that interferes with a Jaws reader.
+ * 
+ * The drop-down options display name and provide the Rally ref.
+ * 
+ */
+ Ext.define('Rally.technicalservices.accessible.Combobox', {
     extend: 'Ext.Component',
     alias: 'widget.tsaccessiblecombobox',
     
@@ -262,6 +253,13 @@ Ext.define('Rally.technicalservices.accessible.Combobox', {
     config: {
         store: null,        
         componentId : 'comboBox',
+        /**
+         * @cfg {String}
+         * The underlying data field name to bind to this ComboBox.
+         * 
+         * Defaults to 'Name'
+         */
+        displayField: 'Name'
     },
         
     // Constructor
@@ -271,17 +269,25 @@ Ext.define('Rally.technicalservices.accessible.Combobox', {
 
     renderTpl: [
         '<select id={componentId}>',
-        '<tpl for="data">',
-            '<option value="{data._ref}">{data.Name}</option>',
+        '<tpl for="items">',
+            '<option value="{_ref}">{displayField}</option>',
         '</tpl>',
         '</select>'
     ],
     
     getTemplateArgs: function() {
-        data = this.store.getRecords();
+        var me = this;
+        var data = [];
+        var records = this.store.getRecords();
+        Ext.Array.each(records, function(record){
+            data.push({
+                _ref: record.get('_ref'),
+                displayField: record.get(me.displayField)
+            });
+        });
         return {
             componentId: this.componentId,
-            data: this.store.getRecords()
+            items: data
         }
     },
 
@@ -292,13 +298,130 @@ Ext.define('Rally.technicalservices.accessible.Combobox', {
     }
 });
 
+Ext.define('Rally.technicalservices.accessible.editor',{
+    extend: 'Ext.container.Container',
+    alias: 'widget.tsaccessibleeditor',
+    config: {
+         /**
+         * @cfg {Ext.data.Model} record
+         * The Rally record to edit
+         */
+        record: null,
+        /**
+         * @cfg {Array} fields
+         * A field configuration definition.  Each item in the array:
+         * @cfg {String} Name
+         * @cfg {String} dataIndex
+         * 
+         * for example, 
+         * fields: [ { Name: 'Item Name', dataIndex: 'Name' } ]
+         */
+        fields: []
+    },
+    renderTpl: "",
+    getTemplateArgs: function() {
+        if ( this.fields.length == 0 ) {
+            this.renderTpl = "No fields supplied";
+        }
+        
+        if ( this.record == null ) {
+            this.renderTpl = "No record supplied";
+        }
+        return {
+            fields: this.fields
+        }
+    },
+    beforeRender: function() {
+        var me = this;
+        me.callParent();
+        
+        Ext.applyIf(me.renderData, me.getTemplateArgs());
+    },
+    getFieldObjects: function() {
+        var me = this;
+        var items = [];
+        var value = "";
+
+        for (var i=0; i<me.fields.length; i++) {
+            if ( me.record ) {
+                value = me.record.get(me.fields[i].dataIndex)
+            }
+            var thisItem = {
+                xtype: 'rallytextfield',
+                fieldLabel: me.fields[i].text,
+                value: value,
+                itemId: "field_" + i
+            };
+            items.push(thisItem);
+        }
+        return items;
+    },
+    
+    initItems : function() {
+        var me = this,
+            items = me.items;
+
+        var field_objects = me.getFieldObjects();
+        if ( field_objects.length > 0 && me.record) {
+            if ( items ) {
+                items = Ext.Array.merge( field_objects, items );
+            } else {
+                items = field_objects;
+            }
+            
+            // TODO: add buttons so that we can provide listeners
+            // add a save button
+//            items.push({
+//                xtype: 'button',
+//                text: 'Save Edits',
+//                buttonLabel : 'Save Edits',
+//                handler: function() { this._saveRecord(record) },
+//                scope: this
+//            });
+        }
+        /**
+         * The MixedCollection containing all the child items of this container.
+         * @property items
+         * @type Ext.util.AbstractMixedCollection
+         */
+        me.items = new Ext.util.AbstractMixedCollection(false, me.getComponentId);
+
+        if (items) {
+            if (!Ext.isArray(items)) {
+                items = [items];
+            }
+
+            me.add(items);
+        }
+    }
+});
 Ext.define('Rally.technicalservices.accessible.grid', {
-    extend: 'Ext.Component',
+    extend: 'Ext.container.Container',
     alias: 'widget.tsaccessiblegrid',
     config: {
+         /**
+         * @cfg {String} 
+         * Embedded into the table definition as the caption
+         * 
+         * Defaults to the value of title
+         */
         caption: null,
+         /**
+         * @cfg {String} 
+         * Embedded into the table definition as the summary
+         * 
+         * Defaults to 'Grid Title'
+         */
         title: 'Grid Title',
+        /**
+         * @cfg {@Rally.data.WsapiDataStoreView} Must be a WsapiDataStore
+         * 
+         */
         store: null,
+        /**
+         * @cfg {Array}
+         * Accepts {@link Ext.grid.Panel} column configs
+         */
         columns: []
     },
     
@@ -327,18 +450,18 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         '<tbody>',
             '<tpl for="data">',
                 '<tr>',
-                '<td><button id="button-{#}">{data.FormattedID} Edit</button></td>',
+                '<th scope="row"><button id="button-{#}">{data.FormattedID} Edit</button></th>',
                     '<tpl for="parent.columns">',
-                        '<tpl if="xindex === 1">',
-                            '<th scope="row">',                           
-                            '{[parent.data[values.dataIndex]]}',
+                        /*'<tpl if="xindex === 1">',
+                            '<th scope="row">',
+                            '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "..." ]}',
                             '</th>',
-                        '</tpl>',                    
-                        '<tpl if="xindex &gt; 1">',
-                            '<td>',                          
-                            '{[parent.data[values.dataIndex]]}',
-                            '</td>',
                         '</tpl>',
+                        '<tpl if="xindex &gt; 1">',*/
+                            '<td>',
+                            '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "..." ]}',
+                            '</td>',
+                        /*'</tpl>',*/
                     '</tpl>',
                 '</tr>',
             '</tpl>',
@@ -349,12 +472,18 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     renderTpl_past: [ '{html}'],
     
     getTemplateArgs: function() {
-        
+        var data = [];
+        if (this.store) {
+            data = this.store.getRecords();
+        }
+        if ( data.length == 0 ) {
+            this.renderTpl = "No records found";
+        }
         return {
             summary: this.title,
             caption: this.caption || this.title,
             columns: this.columns,
-            data: this.store.getRecords()
+            data: data
         }
     },
     
@@ -367,12 +496,14 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     afterRender: function() {
         var me = this;
-        for (var i=1; i<=this.store.getRecords().length; i++) {
-            Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
-        }
-        var first_button = Ext.get('button-1');
-        if ( first_button ) {
-            first_button.focus();
+        if ( this.store ) {
+            for (var i=1; i<=this.store.getRecords().length; i++) {
+                Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
+            }
+            var first_button = Ext.get('button-1');
+            if ( first_button ) {
+                first_button.focus();
+            }
         }
     },
     
