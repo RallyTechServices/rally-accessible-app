@@ -11,6 +11,8 @@ module.exports = function(grunt) {
         config.js_contents = config.js_contents + "\n" + grunt.file.read(config.js_files[i]);
     }
     // grunt.log.writeln( config.js_contents );
+    var auth = grunt.file.readJSON('auth.json');
+    config.auth = auth
     
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),

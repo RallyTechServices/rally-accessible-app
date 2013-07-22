@@ -25,40 +25,59 @@
         
     <script type="text/javascript">
         //Redefine onReady - bug in phantomjs such that onload isn't triggered for <link>, so the default Rally onReady won't work consistently
+        /*
         Rally.sdk.Bootstrapper.onReady = function (onready) {
             if (!Rally.environment) {
                 Ext.create('Rally.sdk.env.Global').setup();
             }
             onready();
         };
+        */
                 
         Rally.onReady(function () {
-            Rally.loadScripts(<%= JSON.stringify(options.js_files) %>,
-            function() {
+            var token = '<%= options.auth.username %>:<%= options.auth.password %>';
+            var auth_string = 'Basic ' + Base64.encode(token);
+            console.log(auth_string);
+        
+            var url = '<%= options.server %>/slm/webservice/v2.0/workspace?query=&pagesize=1'
+            Ext.Ajax.useDefaultXhrHeader = false;
+            Ext.Ajax.withCredentials=true;
             
-                var page = require('webpage').create(),
-                    system = require('system'),
-                    t, address;
-                
-                page.settings.userName = 'test';
-                page.settings.password = 'test';
-            
-                Rally.launchApp('TestApp', {
-                    name: 'Test Accessible App'
-                });
-                
-                var jasmineEnv = jasmine.getEnv();
-
-                jasmineEnv.updateInterval = 1000;
-                var htmlReporter = new jasmine.HtmlReporter();
-                jasmineEnv.addReporter(htmlReporter);
-
-                jasmineEnv.specFilter = function (spec) {
-                    return htmlReporter.specFilter(spec);
-                };
-
-                jasmineEnv.execute();
-            }, true);
+            Ext.Ajax.request({
+                url: url,
+                method: 'GET',
+                headers: {
+                    'Authorization': auth_string
+                },
+                success: function(response){
+                    Rally.loadScripts(<%= JSON.stringify(options.js_files) %>,
+                    function() {
+                        console.log('loaded scripts');
+                        Ext.define('TestApp',{
+                            extend: 'Rally.app.App',
+                            componentCls: 'app',
+                            launch: function() {
+                                console.log("launch");
+                                var jasmineEnv = jasmine.getEnv();
+    
+                                jasmineEnv.updateInterval = 1000;
+                                var htmlReporter = new jasmine.HtmlReporter();
+                                jasmineEnv.addReporter(htmlReporter);
+    
+                                jasmineEnv.specFilter = function (spec) {
+                                    return htmlReporter.specFilter(spec);
+                                };
+    
+                                jasmineEnv.execute();
+                            }
+                        });
+                        console.log('about to launch');
+                        Rally.launchApp('TestApp', {
+                            name: 'Test Accessible App'
+                        });
+                    }, true);
+                }
+            });
         });
         
     </script>

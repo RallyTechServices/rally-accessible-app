@@ -52,6 +52,16 @@ The default task will run if you don't provide a task name.
 ### config.json ###
 This file provides a few configuration settings for the app you are creating.  Change the server and sdk settings when developing against a different sdk or testing on another server.  The javascript and css settings are no longer required -- they're historical -- because the gruntfile just pulls the list of JS files from the src directory.
 
+### auth.json ###
+If you are going to run the slow tests, you must also create an authorization configuration file.  This file contains the username and password of a Rally user that you want to use for the tests to
+log into Rally and read/create data.  **NOTE:** When the grunt test-slow task runs, it will copy these values into the _SpecRunner.html file.  Do not commit or provide the auth.json and _SpecRunner.html 
+files to anyone else.  The file should look like this:
+        {
+            "username": "somebody@somewhere.com",
+            "password": "secret!"
+        }
+
+
 ## Testing ##
 We used jasmine for rspec-style testing.  To ease transfer, we are not truly unitizing the tests.  The tests will all require 
 that you can connect to the Rally server so that we can use Rally-supplied JS.  The "fast" tests are generally created to not
