@@ -1,3 +1,9 @@
+Ext.define('mockContext',{
+    getUser: function() {
+        return "nobody";
+    }
+});
+
 /**
 *
 *  Base64 encode / decode

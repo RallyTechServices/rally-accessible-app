@@ -12,7 +12,7 @@ Ext.define('CustomApp', {
             {xtype: 'container', html: '<h2>Top of the App</h2> ' +
                     '<p>This app allows a user to select a project and find stories within that project. ' +
                     'Below this paragraph, there is a combobox listing projects and a button that starts the query. ' +
-                    'The app will generate a table of the first ten user stories for the selected project.</p>' }
+                    'The app will generate a table of the first ten user stories owned by the current user for the selected project.</p>' }
         ]},
         {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } },
         {xtype:'container',itemId:'grid_box', items: [{xtype:'container',html:'<h3>User Story Grid Area</h3>'}]},
@@ -22,40 +22,6 @@ Ext.define('CustomApp', {
             {xtype:'container',itemId:'alert_area',id:'alert_area'}
         ]}
     ],
-
-    _log: function(msg) {
-        window.console && console.log( msg );  
-    },
-    
-    _alert: function(message) {
-        this.down('#alert_area').removeAll();
-        this.down('#alert_area').add({ xtype:'container',html:'<span role="alert">' + message + "</span>"});
-
-        var objHidden = document.getElementById('virtualbufferupdate');
-    
-        if (objHidden)
-        {
-            if (objHidden.getAttribute('value') == '1') {
-                objHidden.setAttribute('value', '0');
-            } else {
-                objHidden.setAttribute('value', '1');
-            }
-        } else {
-            this._prepareBuffer();
-        }
-    },
-    _prepareBuffer: function(){
-        var objNew = document.createElement('p');
-        var objHidden = document.createElement('input');
-    
-        objHidden.setAttribute('type', 'hidden');
-        objHidden.setAttribute('value', '1');
-        objHidden.setAttribute('id', 'virtualbufferupdate');
-        objHidden.setAttribute('name', 'virtualbufferupdate');
-    
-        objNew.appendChild(objHidden);
-        Ext.getBody().appendChild(objNew);
-    },
     launch: function() {       
         Ext.getBody().set({ role: 'application' });
         this._alert("The application is loading.");
@@ -107,7 +73,6 @@ Ext.define('CustomApp', {
         this._alert("The application is loaded and available in an iFrame on the page. " +
                 "Focus should be on the Get Stories button, which is after the project selector combo box.");
     },
-    
     
     // Loads/refreshes grid with subset of Stories from selected project
     _getStories: function() {
@@ -224,6 +189,41 @@ Ext.define('CustomApp', {
         //TODO: refresh table take the user to WHERE?
         //TODO: fireevent onsave so that we can associate an alert with it
         this._alert("Record saved");
+    },
+
+    _log: function(msg) {
+        window.console && console.log( msg );  
+    },
+    
+    _alert: function(message) {
+        this.down('#alert_area').removeAll();
+        this.down('#alert_area').add({ xtype:'container',html:'<span role="alert">' + message + "</span>"});
+
+        var objHidden = document.getElementById('virtualbufferupdate');
+    
+        if (objHidden)
+        {
+            if (objHidden.getAttribute('value') == '1') {
+                objHidden.setAttribute('value', '0');
+            } else {
+                objHidden.setAttribute('value', '1');
+            }
+        } else {
+            this._prepareBuffer();
+        }
+    },
+    _prepareBuffer: function(){
+        var objNew = document.createElement('p');
+        var objHidden = document.createElement('input');
+    
+        objHidden.setAttribute('type', 'hidden');
+        objHidden.setAttribute('value', '1');
+        objHidden.setAttribute('id', 'virtualbufferupdate');
+        objHidden.setAttribute('name', 'virtualbufferupdate');
+    
+        objNew.appendChild(objHidden);
+        Ext.getBody().appendChild(objNew);
     }
+    
     
 });

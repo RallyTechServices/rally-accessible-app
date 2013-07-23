@@ -25,20 +25,90 @@
         
     <script type="text/javascript">
         //Redefine onReady - bug in phantomjs such that onload isn't triggered for <link>, so the default Rally onReady won't work consistently
-        /*
-        Rally.sdk.Bootstrapper.onReady = function (onready) {
-            if (!Rally.environment) {
-                Ext.create('Rally.sdk.env.Global').setup();
+
+        Ext.override(Rally.sdk.Bootstrapper,{
+            onReady: function(onready) {
+                if (!Rally.environment) {
+                    Ext.create('Rally.sdk.env.Global').setup();
+                }
+                var context = Rally.environment.getContext();
+
+                var sdkInfo = this.getSdkInfo();
+
+                if (!context || (sdkInfo.project && sdkInfo.project !== '/project/' + context.getProject().ObjectID)) {
+                    var loader = this._getContextLoader();
+                    loader.load({
+                        project: sdkInfo.project,
+                        success: function (rawContext) {
+                            rawContext.scope.up = Ext.isDefined(sdkInfo.projectScopeUp) ? sdkInfo.projectScopeUp : false;
+                            rawContext.scope.down = Ext.isDefined(sdkInfo.projectScopeDown) ? sdkInfo.projectScopeDown : true;
+    
+                            if (window.sdkConfig && window.sdkConfig.apiBaseUrl) {
+                                rawContext.apiBaseUrl = window.sdkConfig.apiBaseUrl;
+                            }
+    
+                            Rally.environment.externalContext = rawContext;
+                            //this._loadResources();
+                            onready();
+                        },
+                        scope: this
+                    });
+                }
+                    
+                onready();
             }
-            onready();
-        };
-        */
+/*,
+            onReady: function (onReady) {
+                if (this._ready) {
+                    return onReady();
+                } else if (this._readyInProgress) {
+                    this._onReadyFns.push(onReady);
+                } else {
+                    this._readyInProgress = true;
+                    this._onReadyFns = [onReady];
+                    
+                    if (!Rally.environment) {
+                        Ext.create('Rally.sdk.env.Global').setup();
+                    }
+        
+                    //this._secureJsonPRequests();
+        
+                    var context = Rally.environment.getContext();
+                    var sdkInfo = this.getSdkInfo();
+                    if (!context || (sdkInfo.project && sdkInfo.project !== '/project/' + context.getProject().ObjectID)) {
+                        var loader = this._getContextLoader();
+                        loader.load({
+                            project: sdkInfo.project,
+                            success: function (rawContext) {
+                                rawContext.scope.up = Ext.isDefined(sdkInfo.projectScopeUp) ? sdkInfo.projectScopeUp : false;
+                                rawContext.scope.down = Ext.isDefined(sdkInfo.projectScopeDown) ? sdkInfo.projectScopeDown : true;
+        
+                                if (window.sdkConfig && window.sdkConfig.apiBaseUrl) {
+                                    rawContext.apiBaseUrl = window.sdkConfig.apiBaseUrl;
+                                }
+        
+                                Rally.environment.externalContext = rawContext;
+                                this._loadResources();
+                            },
+                            scope: this
+                        });
+                    } else {
+                        this._loadResources();
+                    } 
+                    onReady();
+                }
+            }*/
+        });
+        
                 
-        Rally.onReady(function () {
+       // Rally.onReady(function () {
+       
+       var afterWait = function() {
+            // get us logged in
             var token = '<%= options.auth.username %>:<%= options.auth.password %>';
             var auth_string = 'Basic ' + Base64.encode(token);
-            console.log(auth_string);
         
+            // making a very simple query to establish authentication
             var url = '<%= options.server %>/slm/webservice/v2.0/workspace?query=&pagesize=1'
             Ext.Ajax.useDefaultXhrHeader = false;
             Ext.Ajax.withCredentials=true;
@@ -50,14 +120,15 @@
                     'Authorization': auth_string
                 },
                 success: function(response){
+                    // when we've successfully logged in, load our scripts
                     Rally.loadScripts(<%= JSON.stringify(options.js_files) %>,
-                    function() {
-                        console.log('loaded scripts');
+                    function() {        
+                        // define an app that we're loading to set context  TODO: Is this necessary?
                         Ext.define('TestApp',{
                             extend: 'Rally.app.App',
                             componentCls: 'app',
                             launch: function() {
-                                console.log("launch");
+                                // when app is loaded, we can run our jasmine tests!
                                 var jasmineEnv = jasmine.getEnv();
     
                                 jasmineEnv.updateInterval = 1000;
@@ -71,15 +142,17 @@
                                 jasmineEnv.execute();
                             }
                         });
-                        console.log('about to launch');
+                        console.log("Ignore the context.getUser null error below!");
                         Rally.launchApp('TestApp', {
                             name: 'Test Accessible App'
                         });
                     }, true);
                 }
             });
-        });
+        // });
+        }
         
+        setTimeout(afterWait(), 1000);
     </script>
     <link rel="stylesheet" type="text/css" href="src/style/app.css">
     
