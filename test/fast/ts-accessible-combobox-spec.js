@@ -5,15 +5,19 @@ describe( "Accessible Combobox", function(){
             expect(cb).not.toBe(null);
             expect(cb.store).toBe(null);
             expect(cb.componentId).toEqual('comboBox');
+            expect(cb.itemId).toEqual('projectcb1');
+            expect(cb.fieldLabel).toEqual(null);
         });
         
         it("accepts simple config options", function() {
             var cb = Ext.create('Rally.technicalservices.accessible.Combobox',{
                 componentId: "RallyTest",
-                itemId: 'Item Test Id'
+                itemId: 'Item Test Id',
+                fieldLabel: 'Label'
             });
             expect(cb.componentId).toEqual('RallyTest');
             expect(cb.itemId).toEqual('Item Test Id');
+            expect(cb.fieldLabel).toEqual('Label');
         });
     });
     
@@ -38,6 +42,7 @@ describe( "Accessible Combobox", function(){
             });
             expect(cb.store).toBe(simple_store);
             var div_dom = cb.getEl().dom;
+
             var selector = div_dom.childNodes[0];
             expect(selector.id).toEqual('comboBox');
             var options = selector.childNodes;
