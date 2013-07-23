@@ -53,7 +53,8 @@ Ext.define('CustomApp', {
     _onProjectStoreLoaded: function(store, data) {
         this.projectSelector = Ext.create('Rally.technicalservices.accessible.Combobox', {
             store: store,
-            componentId: 'projectSelector'
+            componentId: 'projectSelector',
+            fieldLabel: 'Project'
         });
         
         this.down('#selector_box').add(this.projectSelector);

@@ -19,7 +19,12 @@
          * 
          * Defaults to 'Name'
          */
-        displayField: 'Name'
+        displayField: 'Name',
+        /**
+         * @cfg {String} label
+         * String to display to the left of the combobox
+         */
+        label: null
     },
         
     // Constructor
@@ -28,6 +33,9 @@
     },
 
     renderTpl: [
+        '<tpl if="label">',
+        '<label for={componentId}>{label}:</label>',
+        '</tpl>',
         '<select id={componentId}>',
         '<tpl for="items">',
             '<option value="{_ref}">{displayField}</option>',
@@ -47,7 +55,8 @@
         });
         return {
             componentId: this.componentId,
-            items: data
+            items: data,
+            label: this.fieldLabel
         }
     },
 
