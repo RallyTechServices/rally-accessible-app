@@ -71,6 +71,34 @@ describe("Accessible Editor",function(){
             var inputs = Ext.dom.Query.select('input',html_node);
             expect(inputs[0].value).toEqual('/mock/12345');
             expect(inputs[1].value).toEqual('first');
+            
+            var buttons = Ext.dom.Query.select('button',html_node);
+            expect(buttons.length).toEqual(0);
+        });
+        
+        it("should add buttons to a form when given button names", function(){
+            editor = Ext.create('Rally.technicalservices.accessible.editor',{
+                renderTo: "componentTestArea",
+                fields: [
+                    {text:'The Name', dataIndex:'Name'}
+                ],
+                record: simple_store.getRecords()[0],
+                buttons: [
+                    { text: 'Save' },
+                    { text: 'Cancel' }
+                ]
+            });
+            var html_node = editor.getEl().dom;
+            var labels = Ext.dom.Query.select('label',html_node);
+            expect(labels.length).toEqual(1);
+            expect(labels[0].innerHTML).toEqual('The Name:');
+            var inputs = Ext.dom.Query.select('input',html_node);
+            expect(inputs[0].value).toEqual('first');
+            
+            var buttons = Ext.dom.Query.select('button',html_node);
+            expect(buttons.length).toEqual(2);
+            expect(buttons[0].childNodes[0].innerHTML).toEqual('Save');
         });
     });
+    
 });

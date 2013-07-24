@@ -16,7 +16,31 @@ Ext.define('Rally.technicalservices.accessible.editor',{
          * for example, 
          * fields: [ { Name: 'Item Name', dataIndex: 'Name' } ]
          */
-        fields: []
+        fields: [],
+        /**
+         * @cfg {Object/Object[]} buttons
+         * Convenience config used for adding buttons docked to the bottom of the panel. 
+         *
+         *     buttons: [
+         *       { text: 'Button 1' }
+         *     ]
+         *     
+         * Clicking a button fires the buttonclick event
+         */
+        buttons: []
+    },
+    initComponent: function() {
+        this.callParent();
+        this.addEvents(
+            /**
+             * @event buttonclick
+             * Fires when one of the buttons is clicked
+             * @param {Rally.technicalservices.accessible.editor} this
+             * @param {Ext.data.Model} Rally record 
+             * @param {Ext.button} The button that was clicked
+             */
+            'buttonclick'
+        );
     },
     renderTpl: "",
     getTemplateArgs: function() {
@@ -69,15 +93,17 @@ Ext.define('Rally.technicalservices.accessible.editor',{
                 items = field_objects;
             }
             
-            // TODO: add buttons so that we can provide listeners
-            // add a save button
-//            items.push({
-//                xtype: 'button',
-//                text: 'Save Edits',
-//                buttonLabel : 'Save Edits',
-//                handler: function() { this._saveRecord(record) },
-//                scope: this
-//            });
+            Ext.Array.each(me.buttons, function(button){
+                var basic_definition = {
+                    xtype: 'button',
+                    text: 'No Label Supplied',
+                    handler: function() { me.fireEvent('buttonclick', me, me.record, this); },
+                    scope: this
+                };
+                
+                items.push(Ext.merge(basic_definition,button));
+            });
+            
         }
         /**
          * The MixedCollection containing all the child items of this container.

@@ -152,19 +152,23 @@ Ext.define('CustomApp', {
         
         this.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
             fields: me.fields,
-            record: record
+            record: record,
+            buttons: [
+                { text: 'Save' },
+                { text: 'Cancel' }
+            ],
+            listeners: {
+                buttonclick: function(editor,record,button) {
+                    if ( button.text == "Save" ) {
+                        me._saveRecord(record);
+                    } else {
+                        me._makeEditor(record);
+                    }
+                }
+            }
         });
-//         
+         
         this.down('#editor_box').add(this.recordEditor);
-        
-        if ( this.save_button ) { this.save_button.destroy(); }
-        this.save_button = this.down('#editor_box').add({
-                xtype: 'button',
-                text: 'Save Edits',
-                buttonLabel : 'Save Edits',
-                handler: function() { this._saveRecord(record) },
-                scope: this
-            });
         
         this._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
         this.down('#field_0').focus(true);
@@ -182,14 +186,25 @@ Ext.define('CustomApp', {
                 var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
                 var field_name = me.fields[index].dataIndex;
                 record.set(field_name, item.value);
-                me._log([item.value, field_name]);
+                me._log(["Saving field/value",field_name, item.value]);
             }
         });
         
-        record.save();
-        //TODO: refresh table take the user to WHERE?
-        //TODO: fireevent onsave so that we can associate an alert with it
-        this._alert("Record saved");
+        record.save({
+            callback: function(result, operation) {
+                if(operation.wasSuccessful()) {
+                    me._alert("Record saved");
+                    // refresh the grid
+                    me._getStories();
+                } else {
+                    me._log(operation);
+                    alert("Could not save the record. The message from the server is: " +
+                        operation.error.errors[0] );
+                }
+            }
+        });
+        
+
     },
 
     _log: function(msg) {
