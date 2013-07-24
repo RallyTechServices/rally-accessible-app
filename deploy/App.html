@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Jul 23 2013 14:37:24 GMT-0700 (PDT) -->
+    <!--  Build Date: Tue Jul 23 2013 17:53:36 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -64,7 +64,8 @@ Ext.define('CustomApp', {
     _onProjectStoreLoaded: function(store, data) {
         this.projectSelector = Ext.create('Rally.technicalservices.accessible.Combobox', {
             store: store,
-            componentId: 'projectSelector'
+            componentId: 'projectSelector',
+            fieldLabel: 'Project'
         });
         
         this.down('#selector_box').add(this.projectSelector);
@@ -162,19 +163,23 @@ Ext.define('CustomApp', {
         
         this.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
             fields: me.fields,
-            record: record
+            record: record,
+            buttons: [
+                { text: 'Save' },
+                { text: 'Cancel' }
+            ],
+            listeners: {
+                buttonclick: function(editor,record,button) {
+                    if ( button.text == "Save" ) {
+                        me._saveRecord(record);
+                    } else {
+                        me._makeEditor(record);
+                    }
+                }
+            }
         });
-//         
+         
         this.down('#editor_box').add(this.recordEditor);
-        
-        if ( this.save_button ) { this.save_button.destroy(); }
-        this.save_button = this.down('#editor_box').add({
-                xtype: 'button',
-                text: 'Save Edits',
-                buttonLabel : 'Save Edits',
-                handler: function() { this._saveRecord(record) },
-                scope: this
-            });
         
         this._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
         this.down('#field_0').focus(true);
@@ -192,14 +197,25 @@ Ext.define('CustomApp', {
                 var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
                 var field_name = me.fields[index].dataIndex;
                 record.set(field_name, item.value);
-                me._log([item.value, field_name]);
+                me._log(["Saving field/value",field_name, item.value]);
             }
         });
         
-        record.save();
-        //TODO: refresh table take the user to WHERE?
-        //TODO: fireevent onsave so that we can associate an alert with it
-        this._alert("Record saved");
+        record.save({
+            callback: function(result, operation) {
+                if(operation.wasSuccessful()) {
+                    me._alert("Record saved");
+                    // refresh the grid
+                    me._getStories();
+                } else {
+                    me._log(operation);
+                    alert("Could not save the record. The message from the server is: " +
+                        operation.error.errors[0] );
+                }
+            }
+        });
+        
+
     },
 
     _log: function(msg) {
@@ -259,7 +275,12 @@ Ext.define('CustomApp', {
          * 
          * Defaults to 'Name'
          */
-        displayField: 'Name'
+        displayField: 'Name',
+        /**
+         * @cfg {String} label
+         * String to display to the left of the combobox
+         */
+        label: null
     },
         
     // Constructor
@@ -268,6 +289,9 @@ Ext.define('CustomApp', {
     },
 
     renderTpl: [
+        '<tpl if="label">',
+        '<label for={componentId}>{label}:</label>',
+        '</tpl>',
         '<select id={componentId}>',
         '<tpl for="items">',
             '<option value="{_ref}">{displayField}</option>',
@@ -287,7 +311,8 @@ Ext.define('CustomApp', {
         });
         return {
             componentId: this.componentId,
-            items: data
+            items: data,
+            label: this.fieldLabel
         }
     },
 
@@ -316,7 +341,31 @@ Ext.define('Rally.technicalservices.accessible.editor',{
          * for example, 
          * fields: [ { Name: 'Item Name', dataIndex: 'Name' } ]
          */
-        fields: []
+        fields: [],
+        /**
+         * @cfg {Object/Object[]} buttons
+         * Convenience config used for adding buttons docked to the bottom of the panel. 
+         *
+         *     buttons: [
+         *       { text: 'Button 1' }
+         *     ]
+         *     
+         * Clicking a button fires the buttonclick event
+         */
+        buttons: []
+    },
+    initComponent: function() {
+        this.callParent();
+        this.addEvents(
+            /**
+             * @event buttonclick
+             * Fires when one of the buttons is clicked
+             * @param {Rally.technicalservices.accessible.editor} this
+             * @param {Ext.data.Model} Rally record 
+             * @param {Ext.button} The button that was clicked
+             */
+            'buttonclick'
+        );
     },
     renderTpl: "",
     getTemplateArgs: function() {
@@ -369,15 +418,17 @@ Ext.define('Rally.technicalservices.accessible.editor',{
                 items = field_objects;
             }
             
-            // TODO: add buttons so that we can provide listeners
-            // add a save button
-//            items.push({
-//                xtype: 'button',
-//                text: 'Save Edits',
-//                buttonLabel : 'Save Edits',
-//                handler: function() { this._saveRecord(record) },
-//                scope: this
-//            });
+            Ext.Array.each(me.buttons, function(button){
+                var basic_definition = {
+                    xtype: 'button',
+                    text: 'No Label Supplied',
+                    handler: function() { me.fireEvent('buttonclick', me, me.record, this); },
+                    scope: this
+                };
+                
+                items.push(Ext.merge(basic_definition,button));
+            });
+            
         }
         /**
          * The MixedCollection containing all the child items of this container.
