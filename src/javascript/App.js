@@ -199,6 +199,8 @@ Ext.define('CustomApp', {
             callback: function(result, operation) {
                 if(operation.wasSuccessful()) {
                     me._alert("Record saved");
+                    // remove the editor
+                    me.recordEditor.destroy();
                     // refresh the grid
                     me._getStories();
                 } else {
