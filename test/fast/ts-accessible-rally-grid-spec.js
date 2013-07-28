@@ -88,23 +88,24 @@ describe("Accessible Grid", function(){
             
             var header_cells = Ext.dom.Query.select('TH',rows[0]);
             expect(header_cells.length).toEqual(3); 
-            expect(header_cells[0].innerHTML).toEqual('Edit');
+            expect(header_cells[0].innerHTML).toEqual('Ref');
             expect(header_cells[0].getAttribute('scope')).toEqual('col');
-            expect(header_cells[1].innerHTML).toEqual('Ref');
+            expect(header_cells[1].innerHTML).toEqual('Name');
             expect(header_cells[1].getAttribute('scope')).toEqual('col');
-            expect(header_cells[2].innerHTML).toEqual('Name');
+            expect(header_cells[2].innerHTML).toEqual('Edit');
             expect(header_cells[2].getAttribute('scope')).toEqual('col');
             
             var data_cells = rows[1].childNodes;
-            expect(Ext.dom.Query.select('button',data_cells[0]).length).toEqual(1);
             expect(data_cells[0].nodeName).toEqual('TH');
             expect(data_cells[0].getAttribute('scope')).toEqual("row");
+            expect(data_cells[0].innerHTML).toEqual('/mock/12345');
             expect(data_cells[1].nodeName).toEqual('TD');
-            expect(data_cells[1].innerHTML).toEqual('/mock/12345');
-            expect(data_cells[2].innerHTML).toEqual('first');
+            expect(data_cells[1].innerHTML).toEqual('first');
+            expect(Ext.dom.Query.select('button',data_cells[2]).length).toEqual(1);
+
             
         });
-        it("should create a grid that shows ellipses when unknown dataIndex", function(){
+        it("should create a grid that shows blank when unknown dataIndex", function(){
             grid = Ext.create('Rally.technicalservices.accessible.grid', {
                 renderTo: "componentTestArea",
                 store: simple_store,
@@ -121,9 +122,9 @@ describe("Accessible Grid", function(){
             var data_cells = rows[1].childNodes;
             expect(data_cells[0].nodeName).toEqual('TH');
             expect(data_cells[0].getAttribute('scope')).toEqual("row");
+            expect(data_cells[0].innerHTML).toEqual('/mock/12345');
             expect(data_cells[1].nodeName).toEqual('TD');
-            expect(data_cells[1].innerHTML).toEqual('/mock/12345');
-            expect(data_cells[2].innerHTML).toEqual('');
+            expect(data_cells[1].innerHTML).toEqual('');
             
         });
     });

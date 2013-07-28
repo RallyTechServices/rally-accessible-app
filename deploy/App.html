@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sat Jul 27 2013 17:03:05 GMT-0700 (PDT) -->
+    <!--  Build Date: Sat Jul 27 2013 18:46:06 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -141,7 +141,7 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 afterrender: function() {
-                    this._alert("The user story table has loaded and focus is on the first story.");
+                    this._alert("Loaded " + this.grid.getCount() + " user stories into the table.");
                 },
                 recordeditclick: function(grid, recordToEdit) {
                     this._log(recordToEdit);
@@ -162,7 +162,8 @@ Ext.define('CustomApp', {
         
         this.fields = [
             {text:'Name', dataIndex:'Name'},
-            {text:'Schedule State', dataIndex:'ScheduleState' }
+            {text:'Schedule State', dataIndex:'ScheduleState' },
+            {text:'Size', dataIndex:'PlanEstimate' }
             ];
         
         this.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
@@ -209,6 +210,8 @@ Ext.define('CustomApp', {
             callback: function(result, operation) {
                 if(operation.wasSuccessful()) {
                     me._alert("Record saved");
+                    // remove the editor
+                    me.recordEditor.destroy();
                     // refresh the grid
                     me._getStories();
                 } else {
@@ -497,27 +500,27 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         '<table border="1" cellspacing="1" cellpadding="1" summary="{summary}">',
         '<caption>{caption}</caption>',
         '<thead><tr>',
-        '<th scope="col">Edit</th>',
         '<tpl for="columns">',
         '<th scope="col">{text}</th>',
         '</tpl>',
+        '<th scope="col">Edit</th>',
         '</tr></thead>',
         '<tbody>',
             '<tpl for="data">',
                 '<tr>',
-                '<th scope="row"><button id="button-{#}">{data.FormattedID} Edit</button></th>',
                     '<tpl for="parent.columns">',
-                        /*'<tpl if="xindex === 1">',
+                        '<tpl if="xindex === 1">',
                             '<th scope="row">',
                             '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "..." ]}',
                             '</th>',
                         '</tpl>',
-                        '<tpl if="xindex &gt; 1">',*/
+                        '<tpl if="xindex &gt; 1">',
                             '<td>',
-                            '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "..." ]}',
+                            '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "" ]}',
                             '</td>',
-                        /*'</tpl>',*/
+                        '</tpl>',
                     '</tpl>',
+                    '<td><button id="button-{#}">{data.FormattedID} Edit</button></td>',
                 '</tr>',
             '</tpl>',
         '</tbody>',
@@ -541,7 +544,16 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             data: data
         }
     },
-    
+    /*
+     * return number of items in the grid
+     */
+    getCount: function() {
+        var count = 0;
+        if ( this.store ) {
+            count = this.store.getCount();
+        }
+        return count;
+    },
     beforeRender: function() {
         var me = this;
         me.callParent();
@@ -552,10 +564,11 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     afterRender: function() {
         var me = this;
         if ( this.store ) {
-            for (var i=1; i<=this.store.getRecords().length; i++) {
+            for (var i=0; i<this.store.getRecords().length; i++) {
+                console.log(i);
                 Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
             }
-            var first_button = Ext.get('button-1');
+            var first_button = Ext.get('button-0');
             if ( first_button ) {
                 first_button.focus();
             }

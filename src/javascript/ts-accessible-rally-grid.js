@@ -45,27 +45,27 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         '<table border="1" cellspacing="1" cellpadding="1" summary="{summary}">',
         '<caption>{caption}</caption>',
         '<thead><tr>',
-        '<th scope="col">Edit</th>',
         '<tpl for="columns">',
         '<th scope="col">{text}</th>',
         '</tpl>',
+        '<th scope="col">Edit</th>',
         '</tr></thead>',
         '<tbody>',
             '<tpl for="data">',
                 '<tr>',
-                '<th scope="row"><button id="button-{#}">{data.FormattedID} Edit</button></th>',
                     '<tpl for="parent.columns">',
-                        /*'<tpl if="xindex === 1">',
+                        '<tpl if="xindex === 1">',
                             '<th scope="row">',
                             '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "..." ]}',
                             '</th>',
                         '</tpl>',
-                        '<tpl if="xindex &gt; 1">',*/
+                        '<tpl if="xindex &gt; 1">',
                             '<td>',
                             '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "" ]}',
                             '</td>',
-                        /*'</tpl>',*/
+                        '</tpl>',
                     '</tpl>',
+                    '<td><button id="button-{#}">{data.FormattedID} Edit</button></td>',
                 '</tr>',
             '</tpl>',
         '</tbody>',
@@ -109,10 +109,10 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     afterRender: function() {
         var me = this;
         if ( this.store ) {
-            for (var i=1; i<=this.store.getRecords().length; i++) {
+            for (var i=0; i<this.store.getRecords().length; i++) {
                 Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
             }
-            var first_button = Ext.get('button-1');
+            var first_button = Ext.get('button-0');
             if ( first_button ) {
                 first_button.focus();
             }
@@ -121,10 +121,8 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     _editButtonClickHandler: function(extEventObject, buttonEl, eOpts) {
         var buttonId = buttonEl.id;
-        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 ) - 1;
-        
+        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 );
         var recordToEdit = this.store.getAt(rowIndex);
-
         this.fireEvent('recordeditclick', this, recordToEdit);
      
     }
