@@ -58,6 +58,17 @@ describe("Accessible Grid", function(){
             if (grid) { grid.destroy(); }
         });
         
+        it("should return a number of items in the grid", function(){
+           grid = Ext.create('Rally.technicalservices.accessible.grid', {
+                renderTo: "componentTestArea",
+                store: simple_store,
+                columns: [
+                    {text:'Ref', dataIndex:'_ref'},
+                    {text:'Name', dataIndex:'Name'}
+                ]
+            });
+            expect(grid.getCount()).toEqual(2);
+        });
         it("should create a grid with columns defined by 'columns'", function(){
             grid = Ext.create('Rally.technicalservices.accessible.grid', {
                 renderTo: "componentTestArea",

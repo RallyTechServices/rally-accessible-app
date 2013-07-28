@@ -7,18 +7,22 @@ Ext.define('CustomApp', {
     grid: null,
 
     table_size: 10,
+    defaults: { padding: 10 },
     items: [ 
         {xtype:'container', items: [ 
-            {xtype: 'container', html: '<h2>Top of the App</h2> ' +
+            {xtype: 'container', html: '<h1>Top of the App</h1> ' +
                     '<p>This app allows a user to select a project and find stories within that project. ' +
                     'Below this paragraph, there is a combobox listing projects and a button that starts the query. ' +
                     'The app will generate a table of the first ten user stories owned by the current user for the selected project.</p>' }
         ]},
-        {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } },
-        {xtype:'container',itemId:'grid_box', items: [{xtype:'container',html:'<h3>User Story Grid Area</h3>'}]},
+        {xtype:'container',items: [
+            {xtype:'container',html:'<h1>Query Options</h1>'},
+            {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } }
+        ]},
+        {xtype:'container',itemId:'grid_box', items: [{xtype:'container',html:'<h3>Resulting User Story Grid Area</h3>'}]},
         {xtype:'container',itemId:'editor_box', items: [{xtype:'container',html:'<h3>Edit Area</h3>'}] },
         {xtype:'container', items: [
-            {xtype:'container',html:'<h2>Alerts</h2>'},
+            {xtype:'container',html:'<h1>Alerts</h1>'},
             {xtype:'container',itemId:'alert_area',id:'alert_area'}
         ]}
     ],
@@ -126,7 +130,7 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 afterrender: function() {
-                    this._alert("The user story table has loaded and focus is on the first story.");
+                    this._alert("Loaded " + this.grid.getCount() + " user stories into the table.");
                 },
                 recordeditclick: function(grid, recordToEdit) {
                     this._log(recordToEdit);

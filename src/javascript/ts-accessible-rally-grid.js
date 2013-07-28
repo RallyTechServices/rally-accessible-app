@@ -89,7 +89,16 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             data: data
         }
     },
-    
+    /*
+     * return number of items in the grid
+     */
+    getCount: function() {
+        var count = 0;
+        if ( this.store ) {
+            count = this.store.getCount();
+        }
+        return count;
+    },
     beforeRender: function() {
         var me = this;
         me.callParent();
