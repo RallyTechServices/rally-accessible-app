@@ -123,7 +123,7 @@ describe("Accessible Grid", function(){
             expect(data_cells[0].getAttribute('scope')).toEqual("row");
             expect(data_cells[1].nodeName).toEqual('TD');
             expect(data_cells[1].innerHTML).toEqual('/mock/12345');
-            expect(data_cells[2].innerHTML).toEqual('...');
+            expect(data_cells[2].innerHTML).toEqual('');
             
         });
     });

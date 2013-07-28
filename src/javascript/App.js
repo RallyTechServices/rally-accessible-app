@@ -151,7 +151,8 @@ Ext.define('CustomApp', {
         
         this.fields = [
             {text:'Name', dataIndex:'Name'},
-            {text:'Schedule State', dataIndex:'ScheduleState' }
+            {text:'Schedule State', dataIndex:'ScheduleState' },
+            {text:'Size', dataIndex:'PlanEstimate' }
             ];
         
         this.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{

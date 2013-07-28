@@ -62,7 +62,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                         '</tpl>',
                         '<tpl if="xindex &gt; 1">',*/
                             '<td>',
-                            '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "..." ]}',
+                            '{[parent.data[values.dataIndex] ? parent.data[values.dataIndex] : "" ]}',
                             '</td>',
                         /*'</tpl>',*/
                     '</tpl>',
