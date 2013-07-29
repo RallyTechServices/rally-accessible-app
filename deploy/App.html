@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Jul 28 2013 20:02:01 GMT-0700 (PDT) -->
+    <!--  Build Date: Mon Jul 29 2013 08:51:10 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -375,6 +375,14 @@ Ext.define('CustomApp', {
         var me = this;
         me.callParent();
         Ext.applyIf(me.renderData, me.getTemplateArgs());
+    },
+    
+    getValue: function() {
+        var my_html = this.getEl().dom;
+        var selector = Ext.dom.Query.selectNode('select',my_html);
+        var options = Ext.dom.Query.select('option',selector);
+        var index = selector.selectedIndex || 0;
+        return options[index].value;
     }
 });
 
@@ -580,6 +588,9 @@ Ext.define('Rally.technicalservices.accessible.editor',{
         var me = this;
         me.tpl = me.renderTpl;
         this.update(me.getTemplateArgs());
+        if (this.value) {
+            this.setValue(this.value);
+        }
         this.fireEvent('load', this);
     },
 
@@ -641,6 +652,19 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             items: data,
             label: this.fieldLabel
         }
+    },
+    
+    setValue: function( new_value ) {
+        var my_html = this.getEl().dom;
+        var selector = Ext.dom.Query.selectNode('select',my_html);
+        var options = Ext.dom.Query.select('option',selector);
+        
+        Ext.Array.each(options, function(option,idx){
+            if (option.value == new_value) {
+                console.log('selected!');
+                selector.selectedIndex = idx;
+            }
+        });
     }
 
 });

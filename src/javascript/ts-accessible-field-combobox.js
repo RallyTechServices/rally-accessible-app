@@ -149,7 +149,6 @@
         
         Ext.Array.each(options, function(option,idx){
             if (option.value == new_value) {
-                console.log('selected!');
                 selector.selectedIndex = idx;
             }
         });

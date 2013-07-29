@@ -25,7 +25,12 @@
          * String to display to the left of the combobox
          */
         label: null,
-        valueField: '_ref'
+        valueField: '_ref',
+         /**
+         * @cfg {Object} value
+         * A value to initialize this field with.
+         */
+        value: null
     },
         
     // Constructor

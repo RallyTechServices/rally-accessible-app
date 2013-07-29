@@ -71,13 +71,19 @@ Ext.define('Rally.technicalservices.accessible.editor',{
                 value = me.record.get(me.fields[i].dataIndex)
             }
             
-            var xtype = me.fields[i].editor || 'rallytextfield';
+            var xtype = 'rallytextfield';
+            if ( me.fields[i].editor && typeof(me.fields[i].editor) == "string") {
+                xtype = me.fields[i].editor;
+            }
             var thisItem = {
                 xtype: xtype,
                 fieldLabel: me.fields[i].text,
                 value: value,
                 itemId: "field_" + i
             };
+            if ( me.fields[i].editor && typeof(me.fields[i].editor != "string") ) {
+                Ext.merge(thisItem,me.fields[i].editor);
+            }
             items.push(thisItem);
         }
         return items;

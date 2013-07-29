@@ -235,8 +235,8 @@ Ext.define('CustomApp', {
             if (item.value && item.itemId ) {
                 var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
                 var field_name = me.fields[index].dataIndex;
-                record.set(field_name, item.value);
-                me._log(["Saving field/value",field_name, item.value]);
+                record.set(field_name, item.getValue());
+                me._log(["Setting field/value",field_name, item.value]);
             }
         });
         
