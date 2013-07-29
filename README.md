@@ -79,3 +79,10 @@ important part of the output looks like this:
         >> 0 failures
 
 with a dot for every test.  
+
+After either test-fast or test-slow is run, a Jasmine spec runner (_SpecRunner.html) is left in the root directory.  You
+can open it in a browser to see those tests run in traditional manual manner (and to check the console for interesting
+output when tests fail).  You can also run the tests with -v to get more verbose output.  The verbose output includes 
+any outputs to console.log.  (grunt -v test-fast)
+
+
