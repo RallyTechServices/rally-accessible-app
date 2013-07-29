@@ -166,9 +166,10 @@ Ext.define('CustomApp', {
                             field.editor = 'rallytextfield';
                             if ( allowed_values.length > 0 ) {
                                 field.editor = {
-                                    xtype: 'rallyfieldvaluecombobox',
+                                    xtype: 'tsaccessiblefieldcombobox',
                                     model: type,
-                                    field: field.dataIndex
+                                    field: field.dataIndex,
+                                    fieldLabel: field.text
                                 }
                             }
                             new_field_array.push(field);

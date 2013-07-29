@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sat Jul 27 2013 19:26:25 GMT-0700 (PDT) -->
+    <!--  Build Date: Sun Jul 28 2013 20:02:01 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -153,9 +153,73 @@ Ext.define('CustomApp', {
         
         this.down('#grid_box').add(this.grid);
     },
-    
+    /*
+     * expecting record, [ {text:'field name',dataIndex:'fieldname'} ]
+     */
+    _makeEditorFieldDefsAndEditor: function(record, field_array) {
+        var me = this;
+        me._log("Field Editor Defs");
+        var new_field_array = [];
+        var type = 'UserStory';
+        
+        Rally.data.ModelFactory.getModel({
+            type: type,
+            success: function(model) {
+                Ext.Array.each(field_array, function(field) {
+                    model.getField(field.dataIndex).getAllowedValueStore().load({
+                        callback: function(records, operation, success) {
+                            var allowed_values = [];
+                            Ext.Array.each(records, function(allowedValue) {
+                                allowed_values.push(allowedValue.get('StringValue'));
+                            });
+                            me._log(field.dataIndex + " ... " + allowed_values.join(','));
+                            var new_field_def = field;
+                            field.editor = 'rallytextfield';
+                            if ( allowed_values.length > 0 ) {
+                                field.editor = {
+                                    xtype: 'tsaccessiblefieldcombobox',
+                                    model: type,
+                                    field: field.dataIndex,
+                                    fieldLabel: field.text
+                                }
+                            }
+                            new_field_array.push(field);
+                            
+                            if (field_array.length == new_field_array.length ) {
+                                me.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
+                                fields: new_field_array,
+                                record: record,
+                                buttons: [
+                                    { text: 'Save' },
+                                    { text: 'Cancel' }
+                                ],
+                                listeners: {
+                                    buttonclick: function(editor,record,button) {
+                                        if ( button.text == "Save" ) {
+                                            me._saveRecord(record);
+                                        } else {
+                                            me._makeEditor(record);
+                                        }
+                                    }
+                                }
+                            });
+                             
+                            me.down('#editor_box').add(me.recordEditor);
+                            
+                            me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
+                            me.down('#field_0').focus(true);
+
+                            }
+                        }
+                    });
+                });
+            }
+        });
+        
+        
+    },
     _makeEditor: function(record) {
-        this._log("_makeEditor");
+        this._log(["_makeEditor",record]);
         var me = this;
         if (this.recordEditor) {
             this.recordEditor.destroy();
@@ -167,29 +231,9 @@ Ext.define('CustomApp', {
             {text:'Size', dataIndex:'PlanEstimate' }
             ];
         
-        this.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
-            fields: me.fields,
-            record: record,
-            buttons: [
-                { text: 'Save' },
-                { text: 'Cancel' }
-            ],
-            listeners: {
-                buttonclick: function(editor,record,button) {
-                    if ( button.text == "Save" ) {
-                        me._saveRecord(record);
-                    } else {
-                        me._makeEditor(record);
-                    }
-                }
-            }
-        });
-         
-        this.down('#editor_box').add(this.recordEditor);
+        this._makeEditorFieldDefsAndEditor(record,this.fields);
         
-        this._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
-        this.down('#field_0').focus(true);
-
+        
     },
     
     _saveRecord: function(record) {
@@ -288,7 +332,8 @@ Ext.define('CustomApp', {
          * @cfg {String} label
          * String to display to the left of the combobox
          */
-        label: null
+        label: null,
+        valueField: '_ref'
     },
         
     // Constructor
@@ -302,7 +347,7 @@ Ext.define('CustomApp', {
         '</tpl>',
         '<select id={componentId}>',
         '<tpl for="items">',
-            '<option value="{_ref}">{displayField}</option>',
+            '<option value="{valueField}">{displayField}</option>',
         '</tpl>',
         '</select>'
     ],
@@ -310,13 +355,15 @@ Ext.define('CustomApp', {
     getTemplateArgs: function() {
         var me = this;
         var data = [];
-        var records = this.store.getRecords();
-        Ext.Array.each(records, function(record){
-            data.push({
-                _ref: record.get('_ref'),
-                displayField: record.get(me.displayField)
+        if ( me.store !== null ) {
+            var records = this.store.getRecords();
+            Ext.Array.each(records, function(record){
+                data.push({
+                    valueField: record.get(me.valueField),
+                    displayField: record.get(me.displayField)
+                });
             });
-        });
+        }
         return {
             componentId: this.componentId,
             items: data,
@@ -403,8 +450,10 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             if ( me.record ) {
                 value = me.record.get(me.fields[i].dataIndex)
             }
+            
+            var xtype = me.fields[i].editor || 'rallytextfield';
             var thisItem = {
-                xtype: 'rallytextfield',
+                xtype: xtype,
                 fieldLabel: me.fields[i].text,
                 value: value,
                 itemId: "field_" + i
@@ -413,7 +462,6 @@ Ext.define('Rally.technicalservices.accessible.editor',{
         }
         return items;
     },
-    
     initItems : function() {
         var me = this,
             items = me.items;
@@ -454,6 +502,149 @@ Ext.define('Rally.technicalservices.accessible.editor',{
         }
     }
 });
+/**
+ * A combobox that takes a field & model type and displays a dropdown that doesn't have
+ * all the cruft that interferes with a Jaws reader.
+ * 
+ */
+ Ext.define('Rally.technicalservices.accessible.combobox.FieldValueCombobox', {
+    extend: 'Rally.technicalservices.accessible.Combobox',
+    alias: 'widget.tsaccessiblefieldcombobox',
+    
+    // Default configuration parameters
+    config: {
+        /**
+         * @cfg {String} fieldLabel
+         * The fieldname from the model where allowed values can be set
+         * 
+         * Defaults to 'ScheduleState'
+         */
+        field: 'ScheduleState',
+        /**
+         * @cfg {String} model
+         * The name of the model that has the assigned field
+         * 
+         * Defaults to 'UserStory'
+         */
+        model: 'UserStory',
+        componentId : 'fieldComboBox',
+        valueField: 'StringValue',
+        displayField: 'StringValue'
+    },
+    
+    constructor: function(config) {
+        this.mergeConfig(config);
+        this.callParent([this.config]);
+    },
+    initComponent: function(){
+        var autoLoad, storeListeners;
+        this.addEvents(
+            /**
+             * @event
+             * Fires when the combobox's store has been loaded
+             * @param {Rally.technicalservices.accessible.combobox.FieldValueCombobox} this
+             */
+            'load'
+        );
+        this.callParent();
+        
+        this.store = Ext.create('Ext.data.Store', {
+            fields: [this.valueField, this.displayField],
+            data: []
+        });
+        
+        this.store.on('load',this._onStoreLoad, this);
+        
+        this.on('afterrender', this._onAfterRender, this);
+
+        if (Ext.isString(this.model)) {
+            this._fetchModel();
+        } else {
+            if (Ext.isString(this.field)) {
+                this.field = this.model.getField(this.field);
+            }
+            this._populateStore();
+        }
+    },
+
+    _fetchModel: function() {
+        Rally.data.ModelFactory.getModel({
+            context: this.context,
+            type: this.model,
+            success: this._onModelRetrieved,
+            scope: this
+        });
+    },
+    
+    _onStoreLoad: function(store) {
+        var me = this;
+        me.tpl = me.renderTpl;
+        this.update(me.getTemplateArgs());
+        this.fireEvent('load', this);
+    },
+
+    _onModelRetrieved: function(model) {
+        this.model = model;
+        this.field = this.model.getField(this.field);
+        this._populateStore();
+    },
+
+    _populateStore: function() {
+        this.field.getAllowedValueStore().load({
+            callback: function(records, operation, success) {
+                var store = this.store;
+                if (!store) {
+                    return;
+                }
+                var noEntryValues = [],
+                    labelValues = _.map(
+                        _.filter(records, this._hasStringValue),
+                        this._convertAllowedValueToLabelValuePair,
+                        this
+                    );
+
+                if (this.field.required === false) {
+                    var name = "-- No Entry --",
+                        value = "";
+                    if (this.field.attributeDefinition.AttributeType.toLowerCase() === 'rating') {
+                        name = "None";
+                        value = "None";
+                    }
+                    noEntryValues.push(this._convertToLabelValuePair(name, value));
+                }
+                store.loadRawData(noEntryValues.concat(labelValues));
+            },
+            scope: this
+        });
+    },
+    
+    _onAfterRender: function() {
+        this._afterRender = true;
+        if(this._storeLoaded) {
+            this.fireEvent('ready', this);
+        }
+    },
+        
+    getTemplateArgs: function() {
+        var me = this;
+        var data = [];
+        if ( me.store !== null ) {
+            me.store.each(function(record){
+                data.push({
+                    valueField: record.get(me.valueField),
+                    displayField: record.get(me.displayField)
+                });
+            });
+        }
+        return {
+            componentId: this.componentId,
+            items: data,
+            label: this.fieldLabel
+        }
+    }
+
+});
+
 Ext.define('Rally.technicalservices.accessible.grid', {
     extend: 'Ext.container.Container',
     alias: 'widget.tsaccessiblegrid',
@@ -547,7 +738,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             this.renderTpl = "No records found";
         }
         Ext.Array.each(data, function(datum){
-            datum.EditText = "";
+            datum.set('EditText',"");
             if (me.editFieldName && datum.get(me.editFieldName) ) {
                 var text = datum.get(me.editFieldName);
                 if ( text.length > 10 ) {
