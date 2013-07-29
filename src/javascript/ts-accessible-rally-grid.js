@@ -10,12 +10,19 @@ Ext.define('Rally.technicalservices.accessible.grid', {
          */
         caption: null,
          /**
-         * @cfg {String} 
+         * @cfg {String} title
          * Embedded into the table definition as the summary
          * 
          * Defaults to 'Grid Title'
          */
         title: 'Grid Title',
+        /**
+         * @cfg {String} editFieldName
+         * When an edit button is displayed, value from this field on the record will
+         * follow 'Edit'.  For example, set to 'FormattedID' for the button to say, 'Edit US72'
+         * 
+         */
+        editFieldName: null,
         /**
          * @cfg {@Rally.data.WsapiDataStoreView} Must be a WsapiDataStore
          * 
@@ -65,7 +72,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                             '</td>',
                         '</tpl>',
                     '</tpl>',
-                    '<td><button id="button-{#}">{data.FormattedID} Edit</button></td>',
+                    '<td><button id="button-{#}">Edit{data.EditText}</button></td>',
                 '</tr>',
             '</tpl>',
         '</tbody>',
@@ -76,12 +83,24 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     getTemplateArgs: function() {
         var data = [];
+        var me = this;
         if (this.store) {
             data = this.store.getRecords();
         }
         if ( data.length == 0 ) {
             this.renderTpl = "No records found";
         }
+        Ext.Array.each(data, function(datum){
+            datum.set('EditText',"");
+            if (me.editFieldName && datum.get(me.editFieldName) ) {
+                var text = datum.get(me.editFieldName);
+                if ( text.length > 10 ) {
+                    text = text.substring(0,9) + ' ...';
+                }
+                datum.set('EditText',' ' + text);
+            }
+        });
+        
         return {
             summary: this.title,
             caption: this.caption || this.title,

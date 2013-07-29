@@ -99,6 +99,32 @@ describe("Accessible Editor",function(){
             expect(buttons.length).toEqual(2);
             expect(buttons[0].childNodes[0].innerHTML).toEqual('Save');
         });
+        
+        it("should create a form with field types supplied by editor in fields",function(){
+            editor = Ext.create('Rally.technicalservices.accessible.editor',{
+                renderTo: "componentTestArea",
+                fields: [
+                    {text:'The Ref', dataIndex:'_ref'},
+                    {text:'The Name', dataIndex:'Name', editor: 'rallytextfield'},
+                    {text:'Iteration',dataIndex:'Iteration',editor:'tsaccessiblecombobox'}
+                ],
+                record: simple_store.getRecords()[0]
+            });
+            var html_node = editor.getEl().dom;
+            var labels = Ext.dom.Query.select('label',html_node);
+            expect(labels.length).toEqual(3);
+            expect(labels[0].innerHTML).toEqual('The Ref:');
+            expect(labels[1].innerHTML).toEqual('The Name:');
+            //console.log(Ext.dom.Query.select('input',html_node));
+            var text_fields = editor.query('rallytextfield');
+            expect(text_fields.length).toEqual(2);
+            expect(text_fields[0].getValue()).toEqual('/mock/12345');
+            expect(text_fields[1].getValue()).toEqual('first');
+            
+            var combobox_fields = editor.query('tsaccessiblecombobox');
+            expect(combobox_fields.length).toEqual(1);
+
+        });
     });
     
 });

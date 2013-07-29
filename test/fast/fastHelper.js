@@ -25,3 +25,9 @@ var alternate_name_store = Ext.create('mockWsapiDataStore',{
         { DisplayName: 'second', _ref: '/mock/12346' }
     ]
 });
+
+var ugly_store = Ext.create('mockWsapiDataStore',{
+    data: [
+        { Name: '1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 ', _ref: '/mock 1347' }
+    ]
+});

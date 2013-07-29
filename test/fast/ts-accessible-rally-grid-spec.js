@@ -127,5 +127,54 @@ describe("Accessible Grid", function(){
             expect(data_cells[1].innerHTML).toEqual('');
             
         });
+        
+        it("should put only Edit on the edit buttons when no field name supplied", function(){
+                        grid = Ext.create('Rally.technicalservices.accessible.grid', {
+                renderTo: "componentTestArea",
+                store: simple_store,
+                columns: [
+                    {text:'Ref', dataIndex:'_ref'}
+                ]
+            });
+            var html_node = grid.getEl().dom;
+            var buttons = Ext.dom.Query.select('button',html_node);
+            expect(buttons.length).toEqual(2);
+            expect(buttons[0].innerHTML).toEqual('Edit');
+            
+        });
+        
+        it("should put Edit {Name} on the edit buttons when no 'Name' field supplied", function(){
+            grid = Ext.create('Rally.technicalservices.accessible.grid', {
+                renderTo: "componentTestArea",
+                store: simple_store,
+                columns: [
+                    {text:'Ref', dataIndex:'_ref'}
+                ],
+                editFieldName: 'Name'
+            });
+            var html_node = grid.getEl().dom;
+            var buttons = Ext.dom.Query.select('button',html_node);
+            expect(buttons.length).toEqual(2);
+            expect(buttons[0].innerHTML).toEqual('Edit first');
+            
+        });
+        
+                
+        it("should truncate the name field when it is very long", function(){
+            grid = Ext.create('Rally.technicalservices.accessible.grid', {
+                renderTo: "componentTestArea",
+                store: ugly_store,
+                columns: [
+                    {text:'Ref', dataIndex:'_ref'},
+                    {text:'Name',dataIndex:'Name'}
+                ],
+                editFieldName: 'Name'
+            });
+            var html_node = grid.getEl().dom;
+            var buttons = Ext.dom.Query.select('button',html_node);
+            expect(buttons.length).toEqual(1);
+            expect(buttons[0].innerHTML).toEqual('Edit 1234 1234 ...');
+            
+        });
     });
 });

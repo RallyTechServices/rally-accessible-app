@@ -1,8 +1,3 @@
-Ext.define('mockContext',{
-    getUser: function() {
-        return "nobody";
-    }
-});
 
 /**
 *

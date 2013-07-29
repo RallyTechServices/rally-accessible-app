@@ -70,8 +70,10 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             if ( me.record ) {
                 value = me.record.get(me.fields[i].dataIndex)
             }
+            
+            var xtype = me.fields[i].editor || 'rallytextfield';
             var thisItem = {
-                xtype: 'rallytextfield',
+                xtype: xtype,
                 fieldLabel: me.fields[i].text,
                 value: value,
                 itemId: "field_" + i
@@ -80,7 +82,6 @@ Ext.define('Rally.technicalservices.accessible.editor',{
         }
         return items;
     },
-    
     initItems : function() {
         var me = this,
             items = me.items;

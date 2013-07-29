@@ -24,7 +24,8 @@
          * @cfg {String} label
          * String to display to the left of the combobox
          */
-        label: null
+        label: null,
+        valueField: '_ref'
     },
         
     // Constructor
@@ -38,7 +39,7 @@
         '</tpl>',
         '<select id={componentId}>',
         '<tpl for="items">',
-            '<option value="{_ref}">{displayField}</option>',
+            '<option value="{valueField}">{displayField}</option>',
         '</tpl>',
         '</select>'
     ],
@@ -46,13 +47,15 @@
     getTemplateArgs: function() {
         var me = this;
         var data = [];
-        var records = this.store.getRecords();
-        Ext.Array.each(records, function(record){
-            data.push({
-                _ref: record.get('_ref'),
-                displayField: record.get(me.displayField)
+        if ( me.store !== null ) {
+            var records = this.store.getRecords();
+            Ext.Array.each(records, function(record){
+                data.push({
+                    valueField: record.get(me.valueField),
+                    displayField: record.get(me.displayField)
+                });
             });
-        });
+        }
         return {
             componentId: this.componentId,
             items: data,

@@ -127,6 +127,7 @@ Ext.define('CustomApp', {
                 {text:'Schedule State', dataIndex:'ScheduleState'},
                 {text:'Size', dataIndex:'PlanEstimate' }
             ],
+            editFieldName: 'Name',
             listeners: {
                 scope: this,
                 afterrender: function() {
@@ -141,9 +142,72 @@ Ext.define('CustomApp', {
         
         this.down('#grid_box').add(this.grid);
     },
-    
+    /*
+     * expecting record, [ {text:'field name',dataIndex:'fieldname'} ]
+     */
+    _makeEditorFieldDefsAndEditor: function(record, field_array) {
+        var me = this;
+        me._log("Field Editor Defs");
+        var new_field_array = [];
+        var type = 'UserStory';
+        
+        Rally.data.ModelFactory.getModel({
+            type: type,
+            success: function(model) {
+                Ext.Array.each(field_array, function(field) {
+                    model.getField(field.dataIndex).getAllowedValueStore().load({
+                        callback: function(records, operation, success) {
+                            var allowed_values = [];
+                            Ext.Array.each(records, function(allowedValue) {
+                                allowed_values.push(allowedValue.get('StringValue'));
+                            });
+                            me._log(field.dataIndex + " ... " + allowed_values.join(','));
+                            var new_field_def = field;
+                            field.editor = 'rallytextfield';
+                            if ( allowed_values.length > 0 ) {
+                                field.editor = {
+                                    xtype: 'rallyfieldvaluecombobox',
+                                    model: type,
+                                    field: field.dataIndex
+                                }
+                            }
+                            new_field_array.push(field);
+                            
+                            if (field_array.length == new_field_array.length ) {
+                                me.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
+                                fields: new_field_array,
+                                record: record,
+                                buttons: [
+                                    { text: 'Save' },
+                                    { text: 'Cancel' }
+                                ],
+                                listeners: {
+                                    buttonclick: function(editor,record,button) {
+                                        if ( button.text == "Save" ) {
+                                            me._saveRecord(record);
+                                        } else {
+                                            me._makeEditor(record);
+                                        }
+                                    }
+                                }
+                            });
+                             
+                            me.down('#editor_box').add(me.recordEditor);
+                            
+                            me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
+                            me.down('#field_0').focus(true);
+
+                            }
+                        }
+                    });
+                });
+            }
+        });
+        
+        
+    },
     _makeEditor: function(record) {
-        this._log("_makeEditor");
+        this._log(["_makeEditor",record]);
         var me = this;
         if (this.recordEditor) {
             this.recordEditor.destroy();
@@ -155,29 +219,9 @@ Ext.define('CustomApp', {
             {text:'Size', dataIndex:'PlanEstimate' }
             ];
         
-        this.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
-            fields: me.fields,
-            record: record,
-            buttons: [
-                { text: 'Save' },
-                { text: 'Cancel' }
-            ],
-            listeners: {
-                buttonclick: function(editor,record,button) {
-                    if ( button.text == "Save" ) {
-                        me._saveRecord(record);
-                    } else {
-                        me._makeEditor(record);
-                    }
-                }
-            }
-        });
-         
-        this.down('#editor_box').add(this.recordEditor);
+        this._makeEditorFieldDefsAndEditor(record,this.fields);
         
-        this._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
-        this.down('#field_0').focus(true);
-
+        
     },
     
     _saveRecord: function(record) {
