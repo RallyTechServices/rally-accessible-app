@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Jul 29 2013 08:51:10 GMT-0700 (PDT) -->
+    <!--  Build Date: Mon Jul 29 2013 13:13:34 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -174,7 +174,7 @@ Ext.define('CustomApp', {
                             });
                             me._log(field.dataIndex + " ... " + allowed_values.join(','));
                             var new_field_def = field;
-                            field.editor = 'rallytextfield';
+                            field.editor = { xtype:'rallytextfield' };
                             if ( allowed_values.length > 0 ) {
                                 field.editor = {
                                     xtype: 'tsaccessiblefieldcombobox',
@@ -183,11 +183,15 @@ Ext.define('CustomApp', {
                                     fieldLabel: field.text
                                 }
                             }
+                            me._log(["field",model.getField(field.dataIndex)]);
+                            if ( model.getField(field.dataIndex).readOnly ) {
+                                field.editor.readOnly = true;
+                            }
                             new_field_array.push(field);
                             
                             if (field_array.length == new_field_array.length ) {
                                 me.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
-                                fields: new_field_array,
+                                fields: field_array,
                                 record: record,
                                 buttons: [
                                     { text: 'Save' },
@@ -215,8 +219,6 @@ Ext.define('CustomApp', {
                 });
             }
         });
-        
-        
     },
     _makeEditor: function(record) {
         this._log(["_makeEditor",record]);
@@ -226,14 +228,13 @@ Ext.define('CustomApp', {
         }
         
         this.fields = [
+            {text:'Formatted ID',dataIndex:'FormattedID'},
             {text:'Name', dataIndex:'Name'},
             {text:'Schedule State', dataIndex:'ScheduleState' },
             {text:'Size', dataIndex:'PlanEstimate' }
             ];
         
         this._makeEditorFieldDefsAndEditor(record,this.fields);
-        
-        
     },
     
     _saveRecord: function(record) {
@@ -246,8 +247,8 @@ Ext.define('CustomApp', {
             if (item.value && item.itemId ) {
                 var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
                 var field_name = me.fields[index].dataIndex;
-                record.set(field_name, item.value);
-                me._log(["Saving field/value",field_name, item.value]);
+                record.set(field_name, item.getValue());
+                me._log(["Setting field/value",field_name, item.value]);
             }
         });
         
@@ -333,7 +334,12 @@ Ext.define('CustomApp', {
          * String to display to the left of the combobox
          */
         label: null,
-        valueField: '_ref'
+        valueField: '_ref',
+         /**
+         * @cfg {Object} value
+         * A value to initialize this field with.
+         */
+        value: null
     },
         
     // Constructor
@@ -459,13 +465,19 @@ Ext.define('Rally.technicalservices.accessible.editor',{
                 value = me.record.get(me.fields[i].dataIndex)
             }
             
-            var xtype = me.fields[i].editor || 'rallytextfield';
+            var xtype = 'rallytextfield';
+            if ( me.fields[i].editor && typeof(me.fields[i].editor) == "string") {
+                xtype = me.fields[i].editor;
+            }
             var thisItem = {
                 xtype: xtype,
                 fieldLabel: me.fields[i].text,
                 value: value,
                 itemId: "field_" + i
             };
+            if ( me.fields[i].editor && typeof(me.fields[i].editor != "string") ) {
+                Ext.merge(thisItem,me.fields[i].editor);
+            }
             items.push(thisItem);
         }
         return items;
@@ -661,7 +673,6 @@ Ext.define('Rally.technicalservices.accessible.editor',{
         
         Ext.Array.each(options, function(option,idx){
             if (option.value == new_value) {
-                console.log('selected!');
                 selector.selectedIndex = idx;
             }
         });

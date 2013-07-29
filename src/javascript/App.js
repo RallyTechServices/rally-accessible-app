@@ -163,7 +163,7 @@ Ext.define('CustomApp', {
                             });
                             me._log(field.dataIndex + " ... " + allowed_values.join(','));
                             var new_field_def = field;
-                            field.editor = 'rallytextfield';
+                            field.editor = { xtype:'rallytextfield' };
                             if ( allowed_values.length > 0 ) {
                                 field.editor = {
                                     xtype: 'tsaccessiblefieldcombobox',
@@ -172,11 +172,15 @@ Ext.define('CustomApp', {
                                     fieldLabel: field.text
                                 }
                             }
+                            me._log(["field",model.getField(field.dataIndex)]);
+                            if ( model.getField(field.dataIndex).readOnly ) {
+                                field.editor.readOnly = true;
+                            }
                             new_field_array.push(field);
                             
                             if (field_array.length == new_field_array.length ) {
                                 me.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
-                                fields: new_field_array,
+                                fields: field_array,
                                 record: record,
                                 buttons: [
                                     { text: 'Save' },
@@ -204,8 +208,6 @@ Ext.define('CustomApp', {
                 });
             }
         });
-        
-        
     },
     _makeEditor: function(record) {
         this._log(["_makeEditor",record]);
@@ -215,14 +217,13 @@ Ext.define('CustomApp', {
         }
         
         this.fields = [
+            {text:'Formatted ID',dataIndex:'FormattedID'},
             {text:'Name', dataIndex:'Name'},
             {text:'Schedule State', dataIndex:'ScheduleState' },
             {text:'Size', dataIndex:'PlanEstimate' }
             ];
         
         this._makeEditorFieldDefsAndEditor(record,this.fields);
-        
-        
     },
     
     _saveRecord: function(record) {
