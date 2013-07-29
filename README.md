@@ -68,5 +68,14 @@ that you can connect to the Rally server so that we can use Rally-supplied JS.  
 need another connection to Rally beyond that grabbing of the SDK.  If a test interacts with Rally _data_, it should be a part of
 the "slow" tests.
 
-Type grunt test-fast to run the fast tests.  The slow tests do not yet work because we have to solve the permissions/context 
-problem.
+Type grunt test-fast to run the fast tests.  
+
+Type grunt test-slow to run the slow tests.  There will be an error message reported about null on getUser, but this can be ignored.  The 
+important part of the output looks like this:
+
+
+        ..
+        2 specs in 1.359s.
+        >> 0 failures
+
+with a dot for every test.  
