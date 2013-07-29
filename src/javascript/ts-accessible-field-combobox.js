@@ -76,6 +76,9 @@
         var me = this;
         me.tpl = me.renderTpl;
         this.update(me.getTemplateArgs());
+        if (this.value) {
+            this.setValue(this.value);
+        }
         this.fireEvent('load', this);
     },
 
@@ -137,6 +140,19 @@
             items: data,
             label: this.fieldLabel
         }
+    },
+    
+    setValue: function( new_value ) {
+        var my_html = this.getEl().dom;
+        var selector = Ext.dom.Query.selectNode('select',my_html);
+        var options = Ext.dom.Query.select('option',selector);
+        
+        Ext.Array.each(options, function(option,idx){
+            if (option.value == new_value) {
+                console.log('selected!');
+                selector.selectedIndex = idx;
+            }
+        });
     }
 
 });

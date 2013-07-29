@@ -67,5 +67,13 @@
         var me = this;
         me.callParent();
         Ext.applyIf(me.renderData, me.getTemplateArgs());
+    },
+    
+    getValue: function() {
+        var my_html = this.getEl().dom;
+        var selector = Ext.dom.Query.selectNode('select',my_html);
+        var options = Ext.dom.Query.select('option',selector);
+        var index = selector.selectedIndex || 0;
+        return options[index].value;
     }
 });
