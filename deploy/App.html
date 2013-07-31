@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Jul 29 2013 13:13:34 GMT-0700 (PDT) -->
+    <!--  Build Date: Wed Jul 31 2013 16:41:13 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -27,18 +27,23 @@ Ext.define('CustomApp', {
                     'The app will generate a table of the first ten user stories owned by the current user for the selected project.</p>' }
         ]},
         {xtype:'container',items: [
-            {xtype:'container',html:'<h1>Query Options</h1>'},
+            {xtype:'container',html:'<h2>Query Options</h2>'},
             {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } }
         ]},
-        {xtype:'container',itemId:'grid_box', items: [{xtype:'container',html:'<h3>Resulting User Story Grid Area</h3>'}]},
-        {xtype:'container',itemId:'editor_box', items: [{xtype:'container',html:'<h3>Edit Area</h3>'}] },
+        {xtype:'container',itemId:'grid_box', items: [
+            {xtype:'container',html:'<h2>Resulting User Story Grid Area</h2>'},
+            {xtype:'container',itemId:'user_story_grid_box'},
+            {xtype:'container',html:'<h2>Resulting Defect Grid Area</h2>'},
+            {xtype:'container',itemId:'defect_grid_box'}
+        ]},
+        {xtype:'container',itemId:'editor_box', items: [{xtype:'container',html:'<h2>Edit Area</h2>'}] },
         {xtype:'container', items: [
-            {xtype:'container',html:'<h1>Alerts</h1>'},
+            {xtype:'container',html:'<h2>Alerts</h2>'},
             {xtype:'container',itemId:'alert_area',id:'alert_area'}
         ]}
     ],
     launch: function() {       
-        Ext.getBody().set({ role: 'application' });
+        //Ext.getBody().set({ role: 'application' });
         this._alert("The application is loading.");
         this._prepareBuffer();
         this.projectStore = Ext.create('Rally.data.WsapiDataStore', {
@@ -76,20 +81,22 @@ Ext.define('CustomApp', {
         
         this.down('#selector_box').add({
             xtype: 'button',
-            text: 'Get Stories',
-            itemId: 'get_stories_button',
-            buttonLabel : 'Get Stories',
-            handler: this._getStories,
+            text: 'Get Stories and Defects',
+            itemId: 'run_query_button',
+            buttonLabel : 'Get Stories and Defects',
+            handler: this._getItems,
             scope: this
         });   
 
         Ext.get('alert_area').set({role:'alert'});
         
-        this.down('#get_stories_button').focus();
+        this.down('#run_query_button').focus();
         this._alert("The application is loaded and available in an iFrame on the page. " +
                 "Focus should be on the Get Stories button, which is after the project selector combo box.");
     },
-    
+    _getItems: function() {
+        this._getStories();
+    },
     // Loads/refreshes grid with subset of Stories from selected project
     _getStories: function() {
         this._log('_getStories');
