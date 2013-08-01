@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Jul 31 2013 16:41:13 GMT-0700 (PDT) -->
+    <!--  Build Date: Wed Jul 31 2013 17:18:10 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -15,7 +15,7 @@ Ext.define('CustomApp', {
     
     projectSelector: null,
     projectStore: null,
-    grid: null,
+    grids: {},
 
     table_size: 10,
     defaults: { padding: 10 },
@@ -32,7 +32,7 @@ Ext.define('CustomApp', {
         ]},
         {xtype:'container',itemId:'grid_box', items: [
             {xtype:'container',html:'<h2>Resulting User Story Grid Area</h2>'},
-            {xtype:'container',itemId:'user_story_grid_box'},
+            {xtype:'container',itemId:'hierarchicalrequirement_grid_box'},
             {xtype:'container',html:'<h2>Resulting Defect Grid Area</h2>'},
             {xtype:'container',itemId:'defect_grid_box'}
         ]},
@@ -95,28 +95,30 @@ Ext.define('CustomApp', {
                 "Focus should be on the Get Stories button, which is after the project selector combo box.");
     },
     _getItems: function() {
-        this._getStories();
+        this.return_message_array = []; // fill with message from each of the queries
+        // Get the ref of the selected project
+        var selected_project_ref = projectSelector.value;
+        var selected_project_name = projectSelector.options[projectSelector.selectedIndex].text;
+        this._alert("Fetching Stories and Defects for " + selected_project_name + " project." );
+        this._getItemsByType("hierarchicalrequirement",selected_project_ref);
+        this._getItemsByType("defect",selected_project_ref);
     },
     // Loads/refreshes grid with subset of Stories from selected project
-    _getStories: function() {
-        this._log('_getStories');
+    _getItemsByType: function(type,project_ref) {
+        this._log(['_getItems',type]);
         var me = this;
-        // Get the ref of the selected project
-        var selectedProjectRef = projectSelector.value;
-        var selectedProjectName = projectSelector.options[projectSelector.selectedIndex].text;
-        this._alert("Loading Stories for " + selectedProjectName + " project." );
+
 
         // Clear out existing grid if present
-        if (this.grid) {
-            this.remove(this.grid);
-        }
+        if (this.grids[type]) { this.grids[type].destroy(); }
+           
         
         var store = Ext.create('Rally.data.WsapiDataStore',{
-            model: 'User Story',
+            model: type,
             limit: me.table_size,
             pageSize: me.table_size,
             context: {
-                project: selectedProjectRef,
+                project: project_ref,
                 projectScopeUp: false,
                 projectScopeDown: false
             },
@@ -125,49 +127,89 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 load: function(store,data,success){
-                    this._makeGrid(store);
+                    this._makeGrid(store,type);
                 }
             }
         });
         
     },
-    
-    _makeGrid: function(store) {
-        if (this.grid) { this.grid.destroy(); }
-        
-        this.grid = Ext.create('Rally.technicalservices.accessible.grid',{
-            store: store,
-            title: 'User Stories',
-            caption: 'Table of User Stories',
-            columns: [
+    edit_fields: {
+        hierarchicalrequirement:  [
+            {text:'Formatted ID',dataIndex:'FormattedID'},
+            {text:'Name', dataIndex:'Name'},
+            {text:'Schedule State', dataIndex:'ScheduleState' },
+            {text:'Size', dataIndex:'PlanEstimate' }
+        ],
+        defect:  [
+            {text:'Formatted ID',dataIndex:'FormattedID'},
+            {text:'Name', dataIndex:'Name'},
+            {text:'Schedule State', dataIndex:'ScheduleState' },
+            {text:'State', dataIndex:'State'},
+            {text:'Size', dataIndex:'PlanEstimate' }
+        ]
+    },
+    table_columns: {
+        hierarchicalrequirement: [
                 {text:'ID', dataIndex:'FormattedID'},
                 {text:'Name', dataIndex:'Name'},
                 {text:'Schedule State', dataIndex:'ScheduleState'},
                 {text:'Size', dataIndex:'PlanEstimate' }
             ],
+            defect: [
+                {text:'ID', dataIndex:'FormattedID'},
+                {text:'Name', dataIndex:'Name'},
+                {text:'Schedule State', dataIndex:'ScheduleState'},
+                {text:'Defect State',dataIndex:'State'},
+                {text:'Size', dataIndex:'PlanEstimate' }
+            ]
+    },
+    friendly_names: {
+        "Defect": "Defect",
+        "defect": "Defect",
+        "userstory": "User Story",
+        "hierarchicalrequirement":"User Story"
+    },
+    /*
+     * make a grid, given a store and the global grid we're talking about
+     * (for story or defect grid)
+     */
+    _makeGrid: function(store, type) {
+        this._log(["_makeGrid",type]);
+        var me = this;
+        if (this.grids[type]) { this.grids[type].destroy(); }
+        
+        this.grids[type] = Ext.create('Rally.technicalservices.accessible.grid',{
+            store: store,
+            title: me.friendly_names[type] || type,
+            caption: 'Table of ' + me.friendly_names[type] + "s",
+            columns: me.table_columns[type],
             editFieldName: 'Name',
             listeners: {
                 scope: this,
                 afterrender: function() {
-                    this._alert("Loaded " + this.grid.getCount() + " user stories into the table.");
+                    me.return_message_array.push("Loaded " + me.grids[type].getCount() + " " + me.friendly_names[type] + "s into the table.");
+                    if ( me.return_message_array.length == 2 ) {
+                        me._alert(me.return_message_array.join(', '));
+                    }
                 },
-                recordeditclick: function(grid, recordToEdit) {
+                recordeditclick: function(g, recordToEdit) {
                     this._log(recordToEdit);
                     this._makeEditor(recordToEdit);
                 }
             }
         });
         
-        this.down('#grid_box').add(this.grid);
+        this.down('#' + type + '_grid_box').add(this.grids[type]);
     },
     /*
      * expecting record, [ {text:'field name',dataIndex:'fieldname'} ]
      */
-    _makeEditorFieldDefsAndEditor: function(record, field_array) {
+    _makeEditorFieldDefsAndEditor: function(record) {
         var me = this;
         me._log("Field Editor Defs");
         var new_field_array = [];
-        var type = 'UserStory';
+        var type = record.get('_type');
+        var field_array = this.edit_fields[type];
         
         Rally.data.ModelFactory.getModel({
             type: type,
@@ -234,26 +276,22 @@ Ext.define('CustomApp', {
             this.recordEditor.destroy();
         }
         
-        this.fields = [
-            {text:'Formatted ID',dataIndex:'FormattedID'},
-            {text:'Name', dataIndex:'Name'},
-            {text:'Schedule State', dataIndex:'ScheduleState' },
-            {text:'Size', dataIndex:'PlanEstimate' }
-            ];
+
         
-        this._makeEditorFieldDefsAndEditor(record,this.fields);
+        this._makeEditorFieldDefsAndEditor(record);
     },
     
     _saveRecord: function(record) {
         this._log('_saveRecord');
         var me = this;
+        var type = record.get('_type');
         
         // TODO: have the editor return the new values
         var items = this.recordEditor.items;
         items.each( function(item) {
             if (item.value && item.itemId ) {
                 var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
-                var field_name = me.fields[index].dataIndex;
+                var field_name = me.edit_fields[type][index].dataIndex;
                 record.set(field_name, item.getValue());
                 me._log(["Setting field/value",field_name, item.value]);
             }
@@ -266,7 +304,7 @@ Ext.define('CustomApp', {
                     // remove the editor
                     me.recordEditor.destroy();
                     // refresh the grid
-                    me._getStories();
+                    me._getItems();
                 } else {
                     me._log(operation);
                     alert("Could not save the record. The message from the server is: " +
