@@ -13,7 +13,8 @@ Ext.define('CustomApp', {
             {xtype: 'container', html: '<h1>Top of the App</h1> ' +
                     '<p>This app allows a user to select a project and find stories within that project. ' +
                     'Below this paragraph, there is a combobox listing projects and a button that starts the query. ' +
-                    'The app will generate a table of the first ten user stories owned by the current user for the selected project.</p>' }
+                    'The app will generate two tables, each containing the first ten items owned by the current ' +
+                    'user for the selected project; one table for user stories and one for defects.</p>' }
         ]},
         {xtype:'container',items: [
             {xtype:'container',html:'<h2>Query Options</h2>'},

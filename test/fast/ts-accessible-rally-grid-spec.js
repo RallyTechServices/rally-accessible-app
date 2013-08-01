@@ -156,6 +156,7 @@ describe("Accessible Grid", function(){
             var buttons = Ext.dom.Query.select('button',html_node);
             expect(buttons.length).toEqual(2);
             expect(buttons[0].innerHTML).toEqual('Edit first');
+            expect(buttons[0].getAttribute('title')).toEqual('Edit first');
             
         });
         
@@ -174,6 +175,7 @@ describe("Accessible Grid", function(){
             var buttons = Ext.dom.Query.select('button',html_node);
             expect(buttons.length).toEqual(1);
             expect(buttons[0].innerHTML).toEqual('Edit 1234 1234 ...');
+           expect(buttons[0].getAttribute('title')).toEqual('Edit 1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 ');
             
         });
     });

@@ -72,7 +72,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                             '</td>',
                         '</tpl>',
                     '</tpl>',
-                    '<td><button id="button-{#}">Edit{data.EditText}</button></td>',
+                    '<td><button id="button-{#}" title="Edit{data.TitleText}">Edit{data.EditText}</button></td>',
                 '</tr>',
             '</tpl>',
         '</tbody>',
@@ -92,8 +92,10 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         }
         Ext.Array.each(data, function(datum){
             datum.set('EditText',"");
+            datum.set('TitleText',"");
             if (me.editFieldName && datum.get(me.editFieldName) ) {
                 var text = datum.get(me.editFieldName);
+                datum.set('TitleText'," " + text);
                 if ( text.length > 10 ) {
                     text = text.substring(0,9) + ' ...';
                 }
