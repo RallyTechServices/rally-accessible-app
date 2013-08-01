@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Jul 31 2013 17:18:10 GMT-0700 (PDT) -->
+    <!--  Build Date: Wed Jul 31 2013 17:21:39 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -187,7 +187,7 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 afterrender: function() {
-                    me.return_message_array.push("Loaded " + me.grids[type].getCount() + " " + me.friendly_names[type] + "s into the table.");
+                    me.return_message_array.push("Loaded " + me.grids[type].getCount() + " " + me.friendly_names[type] + "s into a table.");
                     if ( me.return_message_array.length == 2 ) {
                         me._alert(me.return_message_array.join(', '));
                     }
@@ -251,7 +251,7 @@ Ext.define('CustomApp', {
                                         if ( button.text == "Save" ) {
                                             me._saveRecord(record);
                                         } else {
-                                            me._makeEditor(record);
+                                            me.recordEditor.destroy();
                                         }
                                     }
                                 }

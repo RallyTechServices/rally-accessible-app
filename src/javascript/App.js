@@ -176,7 +176,7 @@ Ext.define('CustomApp', {
             listeners: {
                 scope: this,
                 afterrender: function() {
-                    me.return_message_array.push("Loaded " + me.grids[type].getCount() + " " + me.friendly_names[type] + "s into the table.");
+                    me.return_message_array.push("Loaded " + me.grids[type].getCount() + " " + me.friendly_names[type] + "s into a table.");
                     if ( me.return_message_array.length == 2 ) {
                         me._alert(me.return_message_array.join(', '));
                     }
@@ -240,7 +240,7 @@ Ext.define('CustomApp', {
                                         if ( button.text == "Save" ) {
                                             me._saveRecord(record);
                                         } else {
-                                            me._makeEditor(record);
+                                            me.recordEditor.destroy();
                                         }
                                     }
                                 }
