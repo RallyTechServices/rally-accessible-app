@@ -12,7 +12,7 @@
     // Default configuration parameters
     config: {
         store: null,        
-        componentId : 'comboBox',
+        componentId : null,
         /**
          * @cfg {String}
          * The underlying data field name to bind to this ComboBox.
@@ -36,6 +36,9 @@
     // Constructor
     initComponent: function(){
         this.callParent();
+        if ( this.componentId === null ) {
+            this.componentId = "comboBox-" + this.valueField;
+        }
     },
 
     renderTpl: [

@@ -128,7 +128,8 @@ Ext.define('CustomApp', {
             {text:'Formatted ID',dataIndex:'FormattedID'},
             {text:'Name', dataIndex:'Name'},
             {text:'Schedule State', dataIndex:'ScheduleState' },
-            {text:'Size', dataIndex:'PlanEstimate' }
+            {text:'Size', dataIndex:'PlanEstimate' },
+            {text:'Description', dataIndex:'Description'}
         ],
         defect:  [
             {text:'Formatted ID',dataIndex:'FormattedID'},
@@ -219,8 +220,18 @@ Ext.define('CustomApp', {
                                     xtype: 'tsaccessiblefieldcombobox',
                                     model: type,
                                     field: field.dataIndex,
-                                    fieldLabel: field.text
+                                    fieldLabel: field.text,
+                                    componentId: 'comboBox-' + field.dataIndex
                                 }
+                            } else {
+                                var rally_type = model.getField(field.dataIndex).attributeDefinition.AttributeType;
+//                                if (rally_type === "TEXT"){
+//                                    field.editor = {
+//                                        field: field.dataIndex,
+//                                        fieldLabel: field.text,
+//                                        xtype: 'textareafield'
+//                                    }
+//                                }
                             }
                             me._log(["field",model.getField(field.dataIndex)]);
                             if ( model.getField(field.dataIndex).readOnly ) {
@@ -230,27 +241,27 @@ Ext.define('CustomApp', {
                             
                             if (field_array.length == new_field_array.length ) {
                                 me.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
-                                fields: field_array,
-                                record: record,
-                                buttons: [
-                                    { text: 'Save' },
-                                    { text: 'Cancel' }
-                                ],
-                                listeners: {
-                                    buttonclick: function(editor,record,button) {
-                                        if ( button.text == "Save" ) {
-                                            me._saveRecord(record);
-                                        } else {
-                                            me.recordEditor.destroy();
+                                    fields: field_array,
+                                    record: record,
+                                    buttons: [
+                                        { text: 'Save' },
+                                        { text: 'Cancel' }
+                                    ],
+                                    listeners: {
+                                        buttonclick: function(editor,record,button) {
+                                            if ( button.text == "Save" ) {
+                                                me._saveRecord(record);
+                                            } else {
+                                                me.recordEditor.destroy();
+                                            }
                                         }
                                     }
-                                }
-                            });
+                                });
                              
-                            me.down('#editor_box').add(me.recordEditor);
-                            
-                            me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
-                            me.down('#field_0').focus(true);
+                                me.down('#editor_box').add(me.recordEditor);
+                                
+                                me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
+                                me.down('#field_0').focus(true);
 
                             }
                         }
@@ -283,7 +294,7 @@ Ext.define('CustomApp', {
                 var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
                 var field_name = me.edit_fields[type][index].dataIndex;
                 record.set(field_name, item.getValue());
-                me._log(["Setting field/value",field_name, item.value]);
+                me._log(["Setting field/value",field_name, item.getValue()]);
             }
         });
         

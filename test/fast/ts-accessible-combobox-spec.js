@@ -4,7 +4,7 @@ describe( "Accessible Combobox", function(){
             var cb = Ext.create('Rally.technicalservices.accessible.Combobox',{});
             expect(cb).not.toBe(null);
             expect(cb.store).toBe(null);
-            expect(cb.componentId).toEqual('comboBox');
+            expect(cb.componentId).toEqual('comboBox-_ref');
             expect(cb.fieldLabel).toEqual(null);
         });
         
@@ -41,7 +41,7 @@ describe( "Accessible Combobox", function(){
             var div_dom = cb.getEl().dom;
 
             var selector = div_dom.childNodes[0];
-            expect(selector.id).toEqual('comboBox');
+            expect(selector.id).toEqual('comboBox-_ref');
             var options = selector.childNodes;
             expect(options.length).toEqual(2);
             expect(options[0].value).toEqual("/mock/12345");
@@ -65,6 +65,25 @@ describe( "Accessible Combobox", function(){
             expect(options[1].text).toEqual('second');
         });
         
+        it("should generate the drop-down html when using a different value than '_ref'", function(){
+            cb = Ext.create('Rally.technicalservices.accessible.Combobox',{
+                store: alternate_name_store,
+                renderTo: "componentTestArea",
+                valueField: 'DisplayName',
+                displayField: '_ref'
+            });
+            var div_dom = cb.getEl().dom;
+            var options = div_dom.childNodes[0].childNodes;
+            expect(options.length).toEqual(2);
+            expect(options[0].text).toEqual("/mock/12345");
+            expect(options[0].value).toEqual('first');
+            expect(options[1].text).toEqual("/mock/12346");
+            expect(options[1].value).toEqual('second');
+            
+            var selector = div_dom.childNodes[0];
+            expect(selector.id).toEqual('comboBox-DisplayName');
+
+        });
         it("should generate a label and properly associate it with the combobox", function(){
             cb = Ext.create('Rally.technicalservices.accessible.Combobox',{
                 store: simple_store,

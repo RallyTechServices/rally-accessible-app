@@ -23,7 +23,6 @@
          * Defaults to 'UserStory'
          */
         model: 'UserStory',
-        componentId : 'fieldComboBox',
         valueField: 'StringValue',
         displayField: 'StringValue'
     },
