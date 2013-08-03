@@ -126,5 +126,11 @@ Ext.define('Rally.technicalservices.accessible.editor',{
 
             me.add(items);
         }
+    },
+    setFocusToItemNumber: function(next_idx,select_text){
+        var me = this;
+        if ( next_idx > -1 && next_idx < me.items.length ) {
+            me.items.getAt(next_idx).focus(select_text);
+        }
     }
 });

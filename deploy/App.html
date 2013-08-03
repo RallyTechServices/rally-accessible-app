@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Fri Aug 02 2013 14:12:21 GMT-0700 (PDT) -->
+    <!--  Build Date: Fri Aug 02 2013 20:23:46 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -236,13 +236,27 @@ Ext.define('CustomApp', {
                                 }
                             } else {
                                 var rally_type = model.getField(field.dataIndex).attributeDefinition.AttributeType;
-//                                if (rally_type === "TEXT"){
-//                                    field.editor = {
-//                                        field: field.dataIndex,
-//                                        fieldLabel: field.text,
-//                                        xtype: 'textareafield'
-//                                    }
-//                                }
+                                if (rally_type === "TEXT"){
+                                    field.editor = {
+                                        field: field.dataIndex,
+                                        fieldLabel: field.text,
+                                        xtype: 'htmleditor',
+                                        enableFormat: false,
+                                        enableFontSize: false,
+                                        enableColors: false,
+                                        enableAlignments: false,
+                                        enableFont: false,
+                                        createLinkText: false,
+                                        enableLists: false,
+                                        enableLinks: false,
+                                        enableSourceEdit: false,
+                                        listeners: {
+                                            tab: function(ed,shift_key_pressed) {
+                                                me._moveToNextItem(ed,shift_key_pressed);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             me._log(["field",model.getField(field.dataIndex)]);
                             if ( model.getField(field.dataIndex).readOnly ) {
@@ -272,14 +286,25 @@ Ext.define('CustomApp', {
                                 me.down('#editor_box').add(me.recordEditor);
                                 
                                 me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
-                                me.down('#field_0').focus(true);
-
+                                me.recordEditor.setFocusToItemNumber(0,true);
                             }
                         }
                     });
                 });
             }
         });
+    },
+    // hack because the html editor steals focus and won't give it back from tabbing
+    _moveToNextItem: function(component,shift_key_pressed) {
+        var me = this;
+        var direction = 1;
+        if ( shift_key_pressed ) { direction = -1; }
+        if (me.recordEditor) {
+            if ( me.recordEditor.items ) {
+                var next_idx = Ext.Array.indexOf(me.recordEditor.items,component) + direction;
+                me.recordEditor.setFocusToItemNumber(next_idx,false);
+            }
+        }
     },
     _makeEditor: function(record) {
         this._log(["_makeEditor",record]);
@@ -364,6 +389,92 @@ Ext.define('CustomApp', {
     
     
 });
+/*
+ * Straight override of parts of Ext components so we don't have to subclass them
+ */
+
+// get tabs out of the html editor
+Ext.override(Ext.form.field.HtmlEditor,{
+    fixKeys: (function() { // load time branching for fastest keydown performance
+        if (Ext.isIE) {
+            return function(e){
+                var me = this,
+                    k = e.getKey(),
+                    doc = me.getDoc(),
+                    readOnly = me.readOnly,
+                    range, target;
+
+                if (k === e.TAB) {
+                    e.stopEvent();
+//                    if (!readOnly) {
+//                        range = doc.selection.createRange();
+//                        if(range){
+//                            range.collapse(true);
+//                            range.pasteHTML('&#160;&#160;&#160;&#160;');
+//                            me.deferFocus();
+//                        }
+//                    }
+                }
+                else if (k === e.ENTER) {
+                    if (!readOnly) {
+                        range = doc.selection.createRange();
+                        if (range) {
+                            target = range.parentElement();
+                            if(!target || target.tagName.toLowerCase() !== 'li'){
+                                e.stopEvent();
+                                range.pasteHTML('<br />');
+                                range.collapse(false);
+                                range.select();
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        if (Ext.isOpera) {
+            return function(e){
+                var me = this;
+                if (e.getKey() === e.TAB) {
+                    e.stopEvent();
+//                    if (!me.readOnly) {
+//                        me.win.focus();
+//                        me.execCmd('InsertHTML','&#160;&#160;&#160;&#160;');
+//                        me.deferFocus();
+//                    }
+                }
+            };
+        }
+
+        if (Ext.isWebKit) {
+            return function(e){
+                var me = this,
+                    k = e.getKey(),
+                    readOnly = me.readOnly;
+
+                if (k === e.TAB) {
+                    
+                    e.stopEvent();
+                    // the tab event return this editor and shift_key_pressed
+                    me.fireEvent('tab',me,e.shiftKey);
+//                    if (!readOnly) {
+//                        me.execCmd('InsertText','\t');
+//                        me.deferFocus();
+//                    }
+                }
+                else if (k === e.ENTER) {
+                    e.stopEvent();
+                    if (!readOnly) {
+                        me.execCmd('InsertHtml','<br /><br />');
+                        me.deferFocus();
+                    }
+                }
+            };
+        }
+
+        return null; // not needed, so null
+    }())
+ });
 /**
  * A combobox that takes a store and displays a dropdown that doesn't have
  * all the cruft that interferes with a Jaws reader.
@@ -579,6 +690,12 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             }
 
             me.add(items);
+        }
+    },
+    setFocusToItemNumber: function(next_idx,select_text){
+        var me = this;
+        if ( next_idx > -1 && next_idx < me.items.length ) {
+            me.items.getAt(next_idx).focus(select_text);
         }
     }
 });
@@ -890,32 +1007,6 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     }
    
 });
-/*
- * Straight override of parts of Ext components so we don't have to subclass them
- */
-
- // Change the template of the standard grid
- Ext.override(Ext.view.TableChunker,{
-    metaTableTpl: [
-        '{%if (this.openTableWrap)out.push(this.openTableWrap())%}',
-        '<table role="grid" class="' + Ext.baseCSSPrefix + 'grid-table ' + Ext.baseCSSPrefix + 'grid-table-resizer" border="0" cellspacing="0" cellpadding="0" {[this.embedFullWidth(values)]}>',
-            '<tbody>',
-            '<tr class="' + Ext.baseCSSPrefix + 'grid-header-row">',
-            '<tpl for="columns">',
-                '<th class="' + Ext.baseCSSPrefix + 'grid-col-resizer-{id}" style="width: {width}px; height: 0px;"></th>',
-            '</tpl>',
-            '</tr>',
-            '{[this.openRows()]}',
-                '{row}',
-                '<tpl for="features">',
-                    '{[this.embedFeature(values, parent, xindex, xcount)]}',
-                '</tpl>',
-            '{[this.closeRows()]}',
-            '</tbody>',
-        '</table>',
-        '{%if (this.closeTableWrap)out.push(this.closeTableWrap())%}'
-    ]
- });
             
                Rally.launchApp('CustomApp', {
                    name: 'Accessible App'

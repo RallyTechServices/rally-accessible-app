@@ -225,13 +225,27 @@ Ext.define('CustomApp', {
                                 }
                             } else {
                                 var rally_type = model.getField(field.dataIndex).attributeDefinition.AttributeType;
-//                                if (rally_type === "TEXT"){
-//                                    field.editor = {
-//                                        field: field.dataIndex,
-//                                        fieldLabel: field.text,
-//                                        xtype: 'textareafield'
-//                                    }
-//                                }
+                                if (rally_type === "TEXT"){
+                                    field.editor = {
+                                        field: field.dataIndex,
+                                        fieldLabel: field.text,
+                                        xtype: 'htmleditor',
+                                        enableFormat: false,
+                                        enableFontSize: false,
+                                        enableColors: false,
+                                        enableAlignments: false,
+                                        enableFont: false,
+                                        createLinkText: false,
+                                        enableLists: false,
+                                        enableLinks: false,
+                                        enableSourceEdit: false,
+                                        listeners: {
+                                            tab: function(ed,shift_key_pressed) {
+                                                me._moveToNextItem(ed,shift_key_pressed);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             me._log(["field",model.getField(field.dataIndex)]);
                             if ( model.getField(field.dataIndex).readOnly ) {
@@ -261,14 +275,25 @@ Ext.define('CustomApp', {
                                 me.down('#editor_box').add(me.recordEditor);
                                 
                                 me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
-                                me.down('#field_0').focus(true);
-
+                                me.recordEditor.setFocusToItemNumber(0,true);
                             }
                         }
                     });
                 });
             }
         });
+    },
+    // hack because the html editor steals focus and won't give it back from tabbing
+    _moveToNextItem: function(component,shift_key_pressed) {
+        var me = this;
+        var direction = 1;
+        if ( shift_key_pressed ) { direction = -1; }
+        if (me.recordEditor) {
+            if ( me.recordEditor.items ) {
+                var next_idx = Ext.Array.indexOf(me.recordEditor.items,component) + direction;
+                me.recordEditor.setFocusToItemNumber(next_idx,false);
+            }
+        }
     },
     _makeEditor: function(record) {
         this._log(["_makeEditor",record]);
