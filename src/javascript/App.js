@@ -266,6 +266,7 @@ Ext.define('CustomApp', {
                                             if ( button.text == "Save" ) {
                                                 me._saveRecord(record);
                                             } else {
+                                                me._alert('Cancel pressed. Editor cleared.');
                                                 me.recordEditor.destroy();
                                             }
                                         }
@@ -302,14 +303,13 @@ Ext.define('CustomApp', {
             this.recordEditor.destroy();
         }
         
-
-        
         this._makeEditorFieldDefsAndEditor(record);
     },
     
     _saveRecord: function(record) {
         this._log('_saveRecord');
         var me = this;
+        me._alert("Saving Record.");
         var type = record.get('_type');
         
         // TODO: have the editor return the new values
@@ -326,7 +326,7 @@ Ext.define('CustomApp', {
         record.save({
             callback: function(result, operation) {
                 if(operation.wasSuccessful()) {
-                    me._alert("Record saved");
+                    me._alert("Record saved, editor cleared");
                     // remove the editor
                     me.recordEditor.destroy();
                     // refresh the grid
