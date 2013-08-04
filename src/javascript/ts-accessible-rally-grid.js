@@ -72,7 +72,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                             '</td>',
                         '</tpl>',
                     '</tpl>',
-                    '<td><button id="button-{#}" title="Edit{data.TitleText}">Edit{data.EditText}</button></td>',
+                    '<td><button id="button-{#}">Edit{data.EditText}</button></td>',
                 '</tr>',
             '</tpl>',
         '</tbody>',
@@ -96,9 +96,11 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             if (me.editFieldName && datum.get(me.editFieldName) ) {
                 var text = datum.get(me.editFieldName);
                 datum.set('TitleText'," " + text);
-                if ( text.length > 10 ) {
-                    text = text.substring(0,9) + ' ...';
-                }
+//                if ( text.length > 10 ) {
+//                    text = text.substring(0,9) + ' ...';
+//                }
+                text = "<span style='position: absolute !important;left: -10000px;overflow: hidden;'>"+ text + "</span>";
+                
                 datum.set('EditText',' ' + text);
             }
         });

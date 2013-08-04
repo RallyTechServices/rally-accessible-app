@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Aug 04 2013 11:25:54 GMT-0700 (PDT) -->
+    <!--  Build Date: Sun Aug 04 2013 11:50:40 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -969,7 +969,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                             '</td>',
                         '</tpl>',
                     '</tpl>',
-                    '<td><button id="button-{#}" title="Edit{data.TitleText}">Edit{data.EditText}</button></td>',
+                    '<td><button id="button-{#}">Edit{data.EditText}</button></td>',
                 '</tr>',
             '</tpl>',
         '</tbody>',
@@ -993,9 +993,11 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             if (me.editFieldName && datum.get(me.editFieldName) ) {
                 var text = datum.get(me.editFieldName);
                 datum.set('TitleText'," " + text);
-                if ( text.length > 10 ) {
-                    text = text.substring(0,9) + ' ...';
-                }
+//                if ( text.length > 10 ) {
+//                    text = text.substring(0,9) + ' ...';
+//                }
+                text = "<span style='position: absolute !important;left: -10000px;overflow: hidden;'>"+ text + "</span>";
+                
                 datum.set('EditText',' ' + text);
             }
         });
