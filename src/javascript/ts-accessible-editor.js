@@ -70,6 +70,7 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             if ( me.record ) {
                 value = me.record.get(me.fields[i].dataIndex)
             }
+            console.log("value",value);
             
             var xtype = 'rallytextfield';
             if ( me.fields[i].editor && typeof(me.fields[i].editor) == "string") {

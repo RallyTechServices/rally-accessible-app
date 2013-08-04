@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Fri Aug 02 2013 20:44:06 GMT-0700 (PDT) -->
+    <!--  Build Date: Sun Aug 04 2013 11:25:54 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -240,7 +240,7 @@ Ext.define('CustomApp', {
                                     field.editor = {
                                         field: field.dataIndex,
                                         fieldLabel: field.text,
-                                        xtype: 'htmleditor',
+                                        xtype: 'tsaccessiblehtmleditor',
                                         enableFormat: false,
                                         enableFontSize: false,
                                         enableColors: false,
@@ -393,88 +393,6 @@ Ext.define('CustomApp', {
  * Straight override of parts of Ext components so we don't have to subclass them
  */
 
-// get tabs out of the html editor
-Ext.override(Ext.form.field.HtmlEditor,{
-    fixKeys: (function() { // load time branching for fastest keydown performance
-        if (Ext.isIE) {
-            return function(e){
-                var me = this,
-                    k = e.getKey(),
-                    doc = me.getDoc(),
-                    readOnly = me.readOnly,
-                    range, target;
-
-                if (k === e.TAB) {
-                    e.stopEvent();
-//                    if (!readOnly) {
-//                        range = doc.selection.createRange();
-//                        if(range){
-//                            range.collapse(true);
-//                            range.pasteHTML('&#160;&#160;&#160;&#160;');
-//                            me.deferFocus();
-//                        }
-//                    }
-                }
-                else if (k === e.ENTER) {
-                    if (!readOnly) {
-                        range = doc.selection.createRange();
-                        if (range) {
-                            target = range.parentElement();
-                            if(!target || target.tagName.toLowerCase() !== 'li'){
-                                e.stopEvent();
-                                range.pasteHTML('<br />');
-                                range.collapse(false);
-                                range.select();
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
-        if (Ext.isOpera) {
-            return function(e){
-                var me = this;
-                if (e.getKey() === e.TAB) {
-                    e.stopEvent();
-//                    if (!me.readOnly) {
-//                        me.win.focus();
-//                        me.execCmd('InsertHTML','&#160;&#160;&#160;&#160;');
-//                        me.deferFocus();
-//                    }
-                }
-            };
-        }
-
-        if (Ext.isWebKit) {
-            return function(e){
-                var me = this,
-                    k = e.getKey(),
-                    readOnly = me.readOnly;
-
-                if (k === e.TAB) {
-                    
-                    e.stopEvent();
-                    // the tab event return this editor and shift_key_pressed
-                    me.fireEvent('tab',me,e.shiftKey);
-//                    if (!readOnly) {
-//                        me.execCmd('InsertText','\t');
-//                        me.deferFocus();
-//                    }
-                }
-                else if (k === e.ENTER) {
-                    e.stopEvent();
-                    if (!readOnly) {
-                        me.execCmd('InsertHtml','<br /><br />');
-                        me.deferFocus();
-                    }
-                }
-            };
-        }
-
-        return null; // not needed, so null
-    }())
- });
 /**
  * A combobox that takes a store and displays a dropdown that doesn't have
  * all the cruft that interferes with a Jaws reader.
@@ -635,6 +553,7 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             if ( me.record ) {
                 value = me.record.get(me.fields[i].dataIndex)
             }
+            console.log("value",value);
             
             var xtype = 'rallytextfield';
             if ( me.fields[i].editor && typeof(me.fields[i].editor) == "string") {
@@ -854,6 +773,126 @@ Ext.define('Rally.technicalservices.accessible.editor',{
         });
     }
 
+});
+
+/*
+ * accessible html editor, extended to capture tab key and pass focus, and also
+ * to clean some of the text that won't save
+ */
+Ext.define('Rally.technicalservices.accessible.htmleditor',{
+    extend: 'Ext.form.field.HtmlEditor',
+    alias: 'widget.tsaccessiblehtmleditor',
+    initComponent: function() {
+        this.callParent();
+        this.addEvents(
+        /**
+             * @event tab
+             * Fires when one of tab is pushed inside the box (want to be able to pass
+             * focus or do something else if tab is pushed instead of inserting \t)
+             * @param {Rally.technicalservices.accessible.htmleditor} this
+             * @param {Boolean} shift key also pressed
+             */
+            'tab'
+        );
+    },
+    // get tabs out of the html editor
+    fixKeys: (function() { // load time branching for fastest keydown performance
+        if (Ext.isIE) {
+            return function(e){
+                var me = this,
+                    k = e.getKey(),
+                    doc = me.getDoc(),
+                    readOnly = me.readOnly,
+                    range, target;
+
+                if (k === e.TAB) {
+                    e.stopEvent();
+//                    if (!readOnly) {
+//                        range = doc.selection.createRange();
+//                        if(range){
+//                            range.collapse(true);
+//                            range.pasteHTML('&#160;&#160;&#160;&#160;');
+//                            me.deferFocus();
+//                        }
+//                    }
+                }
+                else if (k === e.ENTER) {
+                    if (!readOnly) {
+                        range = doc.selection.createRange();
+                        if (range) {
+                            target = range.parentElement();
+                            if(!target || target.tagName.toLowerCase() !== 'li'){
+                                e.stopEvent();
+                                range.pasteHTML('<br />');
+                                range.collapse(false);
+                                range.select();
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        if (Ext.isOpera) {
+            return function(e){
+                var me = this;
+                if (e.getKey() === e.TAB) {
+                    e.stopEvent();
+//                    if (!me.readOnly) {
+//                        me.win.focus();
+//                        me.execCmd('InsertHTML','&#160;&#160;&#160;&#160;');
+//                        me.deferFocus();
+//                    }
+                }
+            };
+        }
+
+        if (Ext.isWebKit) {
+            return function(e){
+                var me = this,
+                    k = e.getKey(),
+                    readOnly = me.readOnly;
+
+                if (k === e.TAB) {
+                    
+                    e.stopEvent();
+                    // the tab event return this editor and shift_key_pressed
+                    me.fireEvent('tab',me,e.shiftKey);
+//                    if (!readOnly) {
+//                        me.execCmd('InsertText','\t');
+//                        me.deferFocus();
+//                    }
+                }
+                else if (k === e.ENTER) {
+                    e.stopEvent();
+                    if (!readOnly) {
+                        me.execCmd('InsertHtml','<br /><br />');
+                        me.deferFocus();
+                    }
+                }
+            };
+        }
+
+        return null; // not needed, so null
+    }()),
+    //docs inherit from Field
+    // add clearing bad characters
+    getValue : function() {
+        var me = this,
+            value;
+        if (!me.sourceEditMode) {
+            me.syncValue();
+        }
+        value = me.rendered ? me.textareaEl.dom.value : me.value;
+        value = me.cleanValue(value);
+        me.value = value;
+        return value;
+    },
+    cleanValue: function(value) {
+        var clean_value = value.replace(/\&nbsp;/g," ");
+        
+        return clean_value;
+    }
 });
 
 Ext.define('Rally.technicalservices.accessible.grid', {

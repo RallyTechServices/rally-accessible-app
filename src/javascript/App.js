@@ -229,7 +229,7 @@ Ext.define('CustomApp', {
                                     field.editor = {
                                         field: field.dataIndex,
                                         fieldLabel: field.text,
-                                        xtype: 'htmleditor',
+                                        xtype: 'tsaccessiblehtmleditor',
                                         enableFormat: false,
                                         enableFontSize: false,
                                         enableColors: false,
