@@ -25,6 +25,7 @@
         model: 'UserStory',
         valueField: 'StringValue',
         displayField: 'StringValue'
+
     },
     
     constructor: function(config) {
@@ -58,6 +59,7 @@
             if (Ext.isString(this.field)) {
                 this.field = this.model.getField(this.field);
             }
+
             this._populateStore();
         }
     },
@@ -84,38 +86,76 @@
     _onModelRetrieved: function(model) {
         this.model = model;
         this.field = this.model.getField(this.field);
+        
+        if ( this.field.allowedValueType ) {
+            this.valueField = '_ref';
+            this.displayField = 'Name';
+        }
+            
+        this.store = Ext.create('Ext.data.Store', {
+            fields: [this.valueField, this.displayField],
+            data: []
+        });
+        
+        this.store.on('load',this._onStoreLoad, this);
+        
+        this.on('afterrender', this._onAfterRender, this);
+        
         this._populateStore();
     },
 
     _populateStore: function() {
-        this.field.getAllowedValueStore().load({
-            callback: function(records, operation, success) {
-                var store = this.store;
-                if (!store) {
-                    return;
+        if ( this.field.allowedValueType ) {
+            Ext.create('Rally.data.WsapiDataStore',{
+                model: this.field.allowedValueType._refObjectName,
+                autoLoad: true,
+                context: this.context,
+                listeners: {
+                    load: function(store,data,success){
+                        this._processData(data);
+                    },
+                    scope: this
                 }
-                var noEntryValues = [],
-                    labelValues = _.map(
-                        _.filter(records, this._hasStringValue),
-                        this._convertAllowedValueToLabelValuePair,
-                        this
-                    );
-
-                if (this.field.required === false) {
-                    var name = "-- No Entry --",
-                        value = "";
-                    if (this.field.attributeDefinition.AttributeType.toLowerCase() === 'rating') {
-                        name = "None";
-                        value = "None";
-                    }
-                    noEntryValues.push(this._convertToLabelValuePair(name, value));
-                }
-                store.loadRawData(noEntryValues.concat(labelValues));
-            },
-            scope: this
-        });
+            });
+        } else {
+            this.field.getAllowedValueStore().load({
+                callback: function(records, operation, success) {
+                    this._processData(records);
+                },
+                scope: this
+            });
+        }
     },
-    
+    _processData: function(records) {
+        var me = this;
+        var store = this.store;
+        if (!store) {
+            return;
+        }
+        var noEntryValues = [];
+        var labelValues = [];
+
+        Ext.Array.each( records, function(record){
+            var allowedValue = {};
+            allowedValue[me.valueField] = record.get(me.valueField);
+            allowedValue[me.displayField] = record.get(me.displayField)
+            labelValues.push(allowedValue);
+        });
+        
+        if (this.field.required === false) {
+            var name = "-- No Entry --",
+                value = "";
+            if (this.field.attributeDefinition.AttributeType.toLowerCase() === 'rating') {
+                name = "None";
+                value = "None";
+            }
+            var allowedValue = {};
+            allowedValue[me.valueField] = value;
+            allowedValue[me.displayField] = name;
+            noEntryValues.push(allowedValue);
+        }
+        store.loadRawData(noEntryValues.concat(labelValues));
+    },
     _onAfterRender: function() {
         this._afterRender = true;
         if(this._storeLoaded) {
@@ -145,6 +185,10 @@
         var my_html = this.getEl().dom;
         var selector = Ext.dom.Query.selectNode('select',my_html);
         var options = Ext.dom.Query.select('option',selector);
+        
+        if (!Ext.isString(new_value)) {
+            new_value = new_value._ref;
+        }
         
         Ext.Array.each(options, function(option,idx){
             if (option.value == new_value) {

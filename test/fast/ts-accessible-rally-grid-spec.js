@@ -159,7 +159,6 @@ describe("Accessible Grid", function(){
             
         });
         
-                
         it("should truncate the name field when it is very long", function(){
             grid = Ext.create('Rally.technicalservices.accessible.grid', {
                 renderTo: "componentTestArea",

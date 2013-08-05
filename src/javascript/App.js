@@ -88,6 +88,12 @@ Ext.define('CustomApp', {
         this.return_message_array = []; // fill with message from each of the queries
         // Get the ref of the selected project
         var selected_project_ref = projectSelector.value;
+        var context = this.getContext();
+        context.put('project',selected_project_ref);
+        context.put('projectScopeDown',false);
+        console.log(context);
+        this.setContext(context);
+        console.log(this.getContext());
         var selected_project_name = projectSelector.options[projectSelector.selectedIndex].text;
         this._alert("Fetching Stories and Defects for " + selected_project_name + " project." );
         this._getItemsByType("hierarchicalrequirement",selected_project_ref);
@@ -127,16 +133,20 @@ Ext.define('CustomApp', {
         hierarchicalrequirement:  [
             {text:'Formatted ID',dataIndex:'FormattedID'},
             {text:'Name', dataIndex:'Name'},
+            {text:'Description', dataIndex:'Description'},
             {text:'Schedule State', dataIndex:'ScheduleState' },
             {text:'Size', dataIndex:'PlanEstimate' },
-            {text:'Description', dataIndex:'Description'}
+            {text:'Release', dataIndex:'Release'},
+            {text:'Iteration', dataIndex:'Iteration'}
         ],
         defect:  [
             {text:'Formatted ID',dataIndex:'FormattedID'},
             {text:'Name', dataIndex:'Name'},
             {text:'Schedule State', dataIndex:'ScheduleState' },
             {text:'State', dataIndex:'State'},
-            {text:'Size', dataIndex:'PlanEstimate' }
+            {text:'Size', dataIndex:'PlanEstimate' },
+            {text:'Release', dataIndex:'Release'},
+            {text:'Iteration', dataIndex:'Iteration'}
         ]
     },
     table_columns: {
@@ -219,6 +229,11 @@ Ext.define('CustomApp', {
                                 field.editor = {
                                     xtype: 'tsaccessiblefieldcombobox',
                                     model: type,
+                                    context: {
+                                        project: me.getContext().getProjectRef(),
+                                        projectScopeDown: false,
+                                        projectScopeUp: false
+                                    },
                                     field: field.dataIndex,
                                     fieldLabel: field.text,
                                     componentId: 'comboBox-' + field.dataIndex
