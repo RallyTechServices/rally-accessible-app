@@ -42,7 +42,6 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             'buttonclick'
         );
     },
-    renderTpl: "",
     getTemplateArgs: function() {
         if ( this.fields.length == 0 ) {
             this.renderTpl = "No fields supplied";

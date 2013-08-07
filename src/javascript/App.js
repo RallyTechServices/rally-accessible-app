@@ -256,6 +256,7 @@ Ext.define('CustomApp', {
                                         enableLists: false,
                                         enableLinks: false,
                                         enableSourceEdit: false,
+                                        labelAttrTpl: "",
                                         listeners: {
                                             tab: function(ed,shift_key_pressed) {
                                                 me._moveToNextItem(ed,shift_key_pressed);

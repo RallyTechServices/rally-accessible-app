@@ -18,6 +18,10 @@ Ext.define('Rally.technicalservices.accessible.htmleditor',{
             'tab'
         );
     },
+    getInputId: function() {
+        
+        return this.id + "-iframeEl";
+    },
     // get tabs out of the html editor
     fixKeys: (function() { // load time branching for fastest keydown performance
         if (Ext.isIE) {

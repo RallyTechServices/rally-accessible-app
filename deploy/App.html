@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Aug 06 2013 19:11:41 GMT-0700 (PDT) -->
+    <!--  Build Date: Tue Aug 06 2013 19:53:58 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -267,6 +267,7 @@ Ext.define('CustomApp', {
                                         enableLists: false,
                                         enableLinks: false,
                                         enableSourceEdit: false,
+                                        labelAttrTpl: "",
                                         listeners: {
                                             tab: function(ed,shift_key_pressed) {
                                                 me._moveToNextItem(ed,shift_key_pressed);
@@ -542,7 +543,6 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             'buttonclick'
         );
     },
-    renderTpl: "",
     getTemplateArgs: function() {
         if ( this.fields.length == 0 ) {
             this.renderTpl = "No fields supplied";
@@ -860,6 +860,10 @@ Ext.define('Rally.technicalservices.accessible.htmleditor',{
              */
             'tab'
         );
+    },
+    getInputId: function() {
+        
+        return this.id + "-iframeEl";
     },
     // get tabs out of the html editor
     fixKeys: (function() { // load time branching for fastest keydown performance
