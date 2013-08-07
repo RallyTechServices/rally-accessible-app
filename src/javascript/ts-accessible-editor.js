@@ -70,7 +70,7 @@ Ext.define('Rally.technicalservices.accessible.editor',{
             if ( me.record ) {
                 value = me.record.get(me.fields[i].dataIndex)
             }
-            console.log("value",value);
+            me._log(["value",value]);
             
             var xtype = 'rallytextfield';
             if ( me.fields[i].editor && typeof(me.fields[i].editor) == "string") {
@@ -105,7 +105,9 @@ Ext.define('Rally.technicalservices.accessible.editor',{
                 var basic_definition = {
                     xtype: 'button',
                     text: 'No Label Supplied',
-                    handler: function() { me.fireEvent('buttonclick', me, me.record, this); },
+                    handler: function() { 
+                        me.fireEvent('buttonclick', me, me.record, this); 
+                    },
                     scope: this
                 };
                 
@@ -133,5 +135,8 @@ Ext.define('Rally.technicalservices.accessible.editor',{
         if ( next_idx > -1 && next_idx < me.items.length ) {
             me.items.getAt(next_idx).focus(select_text);
         }
+    },
+        _log: function(msg) {
+        window.console && console.log( this.self.getName(),' -- ', msg );  
     }
 });

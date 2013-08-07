@@ -140,6 +140,7 @@ describe("Accessible Grid", function(){
             var buttons = Ext.dom.Query.select('button',html_node);
             expect(buttons.length).toEqual(2);
             expect(buttons[0].innerHTML).toEqual('Edit');
+            expect(buttons[0].id).toEqual('button-12345-0');
             
         });
         
@@ -156,10 +157,10 @@ describe("Accessible Grid", function(){
             var buttons = Ext.dom.Query.select('button',html_node);
             expect(buttons.length).toEqual(2);
             expect(buttons[0].innerHTML).toEqual('Edit <span style="position: absolute !important;left: -10000px;overflow: hidden;">first</span>');
-            
+            expect(buttons[0].id).toEqual('button-12345-0');
         });
         
-        it("should truncate the name field when it is very long", function(){
+        it("should provide hidden name even when it is very long", function(){
             grid = Ext.create('Rally.technicalservices.accessible.grid', {
                 renderTo: "componentTestArea",
                 store: ugly_store,
@@ -173,7 +174,25 @@ describe("Accessible Grid", function(){
             var buttons = Ext.dom.Query.select('button',html_node);
             expect(buttons.length).toEqual(1);
             expect(buttons[0].innerHTML).toEqual('Edit <span style="position: absolute !important;left: -10000px;overflow: hidden;">1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 </span>');
-            
+            expect(buttons[0].id).toEqual('button-137-0');
         });
+        
+        it("should put id on button even if no ObjectID is supplied", function(){
+            grid = Ext.create('Rally.technicalservices.accessible.grid', {
+                renderTo: "componentTestArea",
+                store: simple_store_without_objectID,
+                columns: [
+                    {text:'Ref', dataIndex:'_ref'},
+                    {text:'Name',dataIndex:'Name'}
+                ],
+                editFieldName: 'Name'
+            });
+            var html_node = grid.getEl().dom;
+            var buttons = Ext.dom.Query.select('button',html_node);
+            expect(buttons.length).toEqual(2);
+            expect(buttons[0].id).toEqual('button--0');
+        });
+        
+        
     });
 });

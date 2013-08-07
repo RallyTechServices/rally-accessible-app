@@ -143,7 +143,9 @@ Ext.define('CustomApp', {
             {text:'Formatted ID',dataIndex:'FormattedID'},
             {text:'Name', dataIndex:'Name'},
             {text:'Schedule State', dataIndex:'ScheduleState' },
+            {text:'Description',dataIndex:'Description'},
             {text:'State', dataIndex:'State'},
+            
             {text:'Size', dataIndex:'PlanEstimate' },
             {text:'Release', dataIndex:'Release'},
             {text:'Iteration', dataIndex:'Iteration'}
@@ -175,7 +177,7 @@ Ext.define('CustomApp', {
      * (for story or defect grid)
      */
     _makeGrid: function(store, type) {
-        this._log(["_makeGrid",type]);
+        this._log("_makeGrid " + type);
         var me = this;
         if (this.grids[type]) { this.grids[type].destroy(); }
         
@@ -358,7 +360,7 @@ Ext.define('CustomApp', {
     },
 
     _log: function(msg) {
-        window.console && console.log( msg );  
+        window.console && console.log( this.self.getName(),' -- ', msg );  
     },
     
     _alert: function(message) {

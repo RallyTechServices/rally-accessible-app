@@ -47,6 +47,9 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             'recordeditclick'
         );
     },
+    _log: function(msg) {
+        window.console && console.log( this.self.getName(),' -- ', msg );  
+    },
     
     renderTpl: [
         '<table border="1" cellspacing="1" cellpadding="1" summary="{summary}">',
@@ -72,7 +75,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                             '</td>',
                         '</tpl>',
                     '</tpl>',
-                    '<td><button id="button-{#}">Edit{data.EditText}</button></td>',
+                    '<td><button id="button-{data.ObjectID}-{#}">Edit{data.EditText}</button></td>',
                 '</tr>',
             '</tpl>',
         '</tbody>',
@@ -132,8 +135,14 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     afterRender: function() {
         var me = this;
         if ( this.store ) {
-            for (var i=0; i<this.store.getRecords().length; i++) {
-                Ext.get('button-' + i).addListener('click', me._editButtonClickHandler, this);
+            var records = this.store.getRecords();
+            for (var i=0; i<records.length; i++) {
+                var unique_id = "";
+                if (records[i].get('ObjectID')) {
+                    unique_id = records[i].get('ObjectID');
+                }
+                this._log("Adding Edit button for " + i + " (" + unique_id + ")");
+                Ext.get('button-' + unique_id + "-" + i).addListener('click', me._editButtonClickHandler, this, records[i]);
             }
             var first_button = Ext.get('button-0');
             if ( first_button ) {
@@ -142,11 +151,12 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         }
     },
     
-    _editButtonClickHandler: function(extEventObject, buttonEl, eOpts) {
-        var buttonId = buttonEl.id;
-        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 );
-        var recordToEdit = this.store.getAt(rowIndex);
-        this.fireEvent('recordeditclick', this, recordToEdit);
+    _editButtonClickHandler: function(extEventObject, buttonEl, record, eOpts) {
+//        var buttonId = buttonEl.id;
+//        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 );
+//        var recordToEdit = this.store.getAt(rowIndex);
+        this._log("_editButtonClickHandler");
+        this.fireEvent('recordeditclick', this, record);
      
     }
    
