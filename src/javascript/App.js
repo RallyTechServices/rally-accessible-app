@@ -246,7 +246,7 @@ Ext.define('CustomApp', {
                                 if (rally_type === "TEXT"){
                                     field.editor = {
                                         field: field.dataIndex,
-                                        fieldLabel: field.text + " (rich text field)",
+                                        fieldLabel: field.text + " multiline rich text field",
                                         xtype: 'tsaccessiblehtmleditor',
                                         iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
 
