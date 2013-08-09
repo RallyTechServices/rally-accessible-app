@@ -144,9 +144,10 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                 this._log("Adding Edit button for " + i + " (" + unique_id + ")");
                 Ext.get('button-' + unique_id + "-" + i).addListener('click', me._editButtonClickHandler, this, records[i]);
             }
-            var first_button = Ext.get('button-0');
-            if ( first_button ) {
-                first_button.focus();
+            var html_node = this.getEl().dom;
+            var buttons = Ext.dom.Query.select('button',html_node);
+            if ( buttons.length > 0 ) {
+                buttons[0].focus();
             }
         }
     },
@@ -155,7 +156,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
 //        var buttonId = buttonEl.id;
 //        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 );
 //        var recordToEdit = this.store.getAt(rowIndex);
-        this._log("_editButtonClickHandler");
+        this._log("fired _editButtonClickHandler");
         this.fireEvent('recordeditclick', this, record);
      
     }

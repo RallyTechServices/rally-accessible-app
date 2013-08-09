@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Aug 08 2013 17:47:22 GMT-0700 (PDT) -->
+    <!--  Build Date: Thu Aug 08 2013 18:04:42 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -96,6 +96,7 @@ Ext.define('CustomApp', {
                 "Focus should be on the Get Stories button, which is after the project selector combo box.");
     },
     _getItems: function() {
+        this._log("_getItems");
         this.return_message_array = []; // fill with message from each of the queries
         // Get the ref of the selected project
         var selected_project_ref = projectSelector.value;
@@ -258,15 +259,6 @@ Ext.define('CustomApp', {
                                         field: field.dataIndex,
                                         fieldLabel: field.text + " (rich text field)",
                                         xtype: 'tsaccessiblehtmleditor',
-                                        enableFormat: false,
-                                        enableFontSize: false,
-                                        enableColors: false,
-                                        enableAlignments: false,
-                                        enableFont: false,
-                                        createLinkText: false,
-                                        enableLists: false,
-                                        enableLinks: false,
-                                        enableSourceEdit: false,
                                         iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
 
                                         listeners: {
@@ -284,7 +276,7 @@ Ext.define('CustomApp', {
                             new_field_array.push(field);
                             
                             if (field_array.length == new_field_array.length ) {
-                                me.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
+                                me.recordEditor = Ext.create('Rally.technicalservices.accessible.editarea',{
                                     fields: field_array,
                                     record: record,
                                     buttons: [
@@ -500,9 +492,9 @@ Ext.define('CustomApp', {
     }
 });
 
-Ext.define('Rally.technicalservices.accessible.editor',{
+Ext.define('Rally.technicalservices.accessible.editarea',{
     extend: 'Ext.container.Container',
-    alias: 'widget.tsaccessibleeditor',
+    alias: 'widget.tsaccessibleeditarea',
     config: {
          /**
          * @cfg {Ext.data.Model} record
@@ -849,6 +841,18 @@ Ext.define('Rally.technicalservices.accessible.editor',{
 Ext.define('Rally.technicalservices.accessible.htmleditor',{
     extend: 'Ext.form.field.HtmlEditor',
     alias: 'widget.tsaccessiblehtmleditor',
+    
+    /* default to not showing all the buttons */
+    enableFormat: false,
+    enableFontSize: false,
+    enableColors: false,
+    enableAlignments: false,
+    enableFont: false,
+    createLinkText: false,
+    enableLists: false,
+    enableLinks: false,
+    enableSourceEdit: false,
+    /* */
     initComponent: function() {
         this.callParent();
         console.log(this.fieldSubTpl);
@@ -1127,9 +1131,10 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                 this._log("Adding Edit button for " + i + " (" + unique_id + ")");
                 Ext.get('button-' + unique_id + "-" + i).addListener('click', me._editButtonClickHandler, this, records[i]);
             }
-            var first_button = Ext.get('button-0');
-            if ( first_button ) {
-                first_button.focus();
+            var html_node = this.getEl().dom;
+            var buttons = Ext.dom.Query.select('button',html_node);
+            if ( buttons.length > 0 ) {
+                buttons[0].focus();
             }
         }
     },
@@ -1138,7 +1143,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
 //        var buttonId = buttonEl.id;
 //        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 );
 //        var recordToEdit = this.store.getAt(rowIndex);
-        this._log("_editButtonClickHandler");
+        this._log("fired _editButtonClickHandler");
         this.fireEvent('recordeditclick', this, record);
      
     }

@@ -85,6 +85,7 @@ Ext.define('CustomApp', {
                 "Focus should be on the Get Stories button, which is after the project selector combo box.");
     },
     _getItems: function() {
+        this._log("_getItems");
         this.return_message_array = []; // fill with message from each of the queries
         // Get the ref of the selected project
         var selected_project_ref = projectSelector.value;
