@@ -245,7 +245,7 @@ Ext.define('CustomApp', {
                                 if (rally_type === "TEXT"){
                                     field.editor = {
                                         field: field.dataIndex,
-                                        fieldLabel: field.text,
+                                        fieldLabel: field.text + " (rich text field)",
                                         xtype: 'tsaccessiblehtmleditor',
                                         enableFormat: false,
                                         enableFontSize: false,
@@ -256,7 +256,8 @@ Ext.define('CustomApp', {
                                         enableLists: false,
                                         enableLinks: false,
                                         enableSourceEdit: false,
-                                        labelAttrTpl: "",
+                                        iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
+
                                         listeners: {
                                             tab: function(ed,shift_key_pressed) {
                                                 me._moveToNextItem(ed,shift_key_pressed);

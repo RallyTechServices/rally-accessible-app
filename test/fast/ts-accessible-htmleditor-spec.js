@@ -39,9 +39,10 @@ describe("Accessible HTML Editor",function(){
             if (editor) { editor.destroy(); }
         });
         
-        it("should have label 'for' the iframe ID",function(){
+        it("should have label 'for' the iframe ID and allow role setting",function(){
             editor = Ext.create('Rally.technicalservices.accessible.htmleditor',{
                 value: '&nbsp;Fred&nbsp;was here',
+                iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
                 renderTo: 'componentTestArea'
             });
             var div_dom = editor.getEl().dom;
@@ -51,7 +52,8 @@ describe("Accessible HTML Editor",function(){
             expect(iframes.length).toEqual(1);
             
             expect(labels[0].getAttribute('for')).toEqual(iframes[0].id);
-            
+            expect(iframes[0].getAttribute('role')).toEqual('aria-textbox');
+            expect(iframes[0].getAttribute('aria-multiline')).toEqual('true');
         });
     });
 });

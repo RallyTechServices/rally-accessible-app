@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Aug 06 2013 19:53:58 GMT-0700 (PDT) -->
+    <!--  Build Date: Thu Aug 08 2013 17:47:22 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -256,7 +256,7 @@ Ext.define('CustomApp', {
                                 if (rally_type === "TEXT"){
                                     field.editor = {
                                         field: field.dataIndex,
-                                        fieldLabel: field.text,
+                                        fieldLabel: field.text + " (rich text field)",
                                         xtype: 'tsaccessiblehtmleditor',
                                         enableFormat: false,
                                         enableFontSize: false,
@@ -267,7 +267,8 @@ Ext.define('CustomApp', {
                                         enableLists: false,
                                         enableLinks: false,
                                         enableSourceEdit: false,
-                                        labelAttrTpl: "",
+                                        iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
+
                                         listeners: {
                                             tab: function(ed,shift_key_pressed) {
                                                 me._moveToNextItem(ed,shift_key_pressed);
@@ -850,6 +851,8 @@ Ext.define('Rally.technicalservices.accessible.htmleditor',{
     alias: 'widget.tsaccessiblehtmleditor',
     initComponent: function() {
         this.callParent();
+        console.log(this.fieldSubTpl);
+        console.log(this.getSubTplData( ) );
         this.addEvents(
         /**
              * @event tab
@@ -862,8 +865,21 @@ Ext.define('Rally.technicalservices.accessible.htmleditor',{
         );
     },
     getInputId: function() {
-        
         return this.id + "-iframeEl";
+    },
+    // fix bug in htmleditor
+    getSubTplData: function() {
+        return {
+            $comp       : this,
+            cmpId       : this.id,
+            id          : this.getInputId(),
+            textareaCls : Ext.baseCSSPrefix + 'hidden',
+            value       : this.value,
+            iframeName  : Ext.id(),
+            iframeSrc   : Ext.SSL_SECURE_URL,
+            size        : 'height:100px;width:100%',
+            iframeAttrTpl: this.iframeAttrTpl
+        };
     },
     // get tabs out of the html editor
     fixKeys: (function() { // load time branching for fastest keydown performance

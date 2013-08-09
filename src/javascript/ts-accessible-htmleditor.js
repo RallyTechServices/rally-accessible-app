@@ -7,6 +7,8 @@ Ext.define('Rally.technicalservices.accessible.htmleditor',{
     alias: 'widget.tsaccessiblehtmleditor',
     initComponent: function() {
         this.callParent();
+        console.log(this.fieldSubTpl);
+        console.log(this.getSubTplData( ) );
         this.addEvents(
         /**
              * @event tab
@@ -19,8 +21,21 @@ Ext.define('Rally.technicalservices.accessible.htmleditor',{
         );
     },
     getInputId: function() {
-        
         return this.id + "-iframeEl";
+    },
+    // fix bug in htmleditor
+    getSubTplData: function() {
+        return {
+            $comp       : this,
+            cmpId       : this.id,
+            id          : this.getInputId(),
+            textareaCls : Ext.baseCSSPrefix + 'hidden',
+            value       : this.value,
+            iframeName  : Ext.id(),
+            iframeSrc   : Ext.SSL_SECURE_URL,
+            size        : 'height:100px;width:100%',
+            iframeAttrTpl: this.iframeAttrTpl
+        };
     },
     // get tabs out of the html editor
     fixKeys: (function() { // load time branching for fastest keydown performance
