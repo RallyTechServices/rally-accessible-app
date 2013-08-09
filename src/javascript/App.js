@@ -246,7 +246,7 @@ Ext.define('CustomApp', {
                                     field.editor = {
                                         field: field.dataIndex,
                                         fieldLabel: field.text + " (rich text field)",
-                                        xtype: 'tsaccessiblehtmleditor',
+                                        xtype: 'tsaccessiblehtmleditarea',
                                         enableFormat: false,
                                         enableFontSize: false,
                                         enableColors: false,

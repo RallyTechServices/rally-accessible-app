@@ -13,14 +13,14 @@ describe("Accessible Editor",function(){
         });
         
         it("is happy with defaults", function(){
-            editor = Ext.create('Rally.technicalservices.accessible.editor',{});
+            editor = Ext.create('Rally.technicalservices.accessible.editarea',{});
             expect(editor).not.toBe(null);
             expect(editor.record).toBe(null);
             expect(editor.fields).toEqual([]);
         });
         
         it("reports no fields when no fields supplied", function(){
-            editor = Ext.create('Rally.technicalservices.accessible.editor',{
+            editor = Ext.create('Rally.technicalservices.accessible.editarea',{
                 renderTo: "componentTestArea",
                 record: simple_store.getRecords()[0]
             });
@@ -29,7 +29,7 @@ describe("Accessible Editor",function(){
         });
         
         it("reports no record when no record supplied", function(){
-            editor = Ext.create('Rally.technicalservices.accessible.editor',{
+            editor = Ext.create('Rally.technicalservices.accessible.editarea',{
                 renderTo: "componentTestArea",
                 fields: [
                     {text:'The Ref', dataIndex:'_ref'},
@@ -54,7 +54,7 @@ describe("Accessible Editor",function(){
         });
         
         it("should create a form with fields as defined by 'fields'",function(){
-            editor = Ext.create('Rally.technicalservices.accessible.editor',{
+            editor = Ext.create('Rally.technicalservices.accessible.editarea',{
                 renderTo: "componentTestArea",
                 fields: [
                     {text:'The Ref', dataIndex:'_ref'},
@@ -77,7 +77,7 @@ describe("Accessible Editor",function(){
         });
         
         it("should add buttons to a form when given button names", function(){
-            editor = Ext.create('Rally.technicalservices.accessible.editor',{
+            editor = Ext.create('Rally.technicalservices.accessible.editarea',{
                 renderTo: "componentTestArea",
                 fields: [
                     {text:'The Name', dataIndex:'Name'}
@@ -101,7 +101,7 @@ describe("Accessible Editor",function(){
         });
         
         it("should create a form with field types supplied by editor in fields",function(){
-            editor = Ext.create('Rally.technicalservices.accessible.editor',{
+            editor = Ext.create('Rally.technicalservices.accessible.editarea',{
                 renderTo: "componentTestArea",
                 fields: [
                     {text:'The Ref', dataIndex:'_ref'},

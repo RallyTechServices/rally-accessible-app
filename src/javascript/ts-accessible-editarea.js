@@ -1,6 +1,6 @@
-Ext.define('Rally.technicalservices.accessible.editor',{
+Ext.define('Rally.technicalservices.accessible.editarea',{
     extend: 'Ext.container.Container',
-    alias: 'widget.tsaccessibleeditor',
+    alias: 'widget.tsaccessibleeditarea',
     config: {
          /**
          * @cfg {Ext.data.Model} record
