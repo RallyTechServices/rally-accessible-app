@@ -5,6 +5,18 @@
 Ext.define('Rally.technicalservices.accessible.htmleditor',{
     extend: 'Ext.form.field.HtmlEditor',
     alias: 'widget.tsaccessiblehtmleditor',
+    
+    /* default to not showing all the buttons */
+    enableFormat: false,
+    enableFontSize: false,
+    enableColors: false,
+    enableAlignments: false,
+    enableFont: false,
+    createLinkText: false,
+    enableLists: false,
+    enableLinks: false,
+    enableSourceEdit: false,
+    /* */
     initComponent: function() {
         this.callParent();
         console.log(this.fieldSubTpl);

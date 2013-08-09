@@ -246,16 +246,7 @@ Ext.define('CustomApp', {
                                     field.editor = {
                                         field: field.dataIndex,
                                         fieldLabel: field.text + " (rich text field)",
-                                        xtype: 'tsaccessiblehtmleditarea',
-                                        enableFormat: false,
-                                        enableFontSize: false,
-                                        enableColors: false,
-                                        enableAlignments: false,
-                                        enableFont: false,
-                                        createLinkText: false,
-                                        enableLists: false,
-                                        enableLinks: false,
-                                        enableSourceEdit: false,
+                                        xtype: 'tsaccessiblehtmleditor',
                                         iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
 
                                         listeners: {
@@ -273,7 +264,7 @@ Ext.define('CustomApp', {
                             new_field_array.push(field);
                             
                             if (field_array.length == new_field_array.length ) {
-                                me.recordEditor = Ext.create('Rally.technicalservices.accessible.editor',{
+                                me.recordEditor = Ext.create('Rally.technicalservices.accessible.editarea',{
                                     fields: field_array,
                                     record: record,
                                     buttons: [
