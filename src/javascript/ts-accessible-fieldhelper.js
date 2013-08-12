@@ -21,6 +21,11 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
         project:null,
         model: null
     },
+    forbidden_fields: ["ObjectID","DisplayColor","LatestDiscussionAgeInMinutes",
+        "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
+        "Subscription","Workspace","Project","RevisionHistory","Blocker","DirectChildrenCount",
+        "Parent","PortfolioItem","Feature"],
+        
     initComponent: function(){
         this.callParent();
         this.addEvents(
@@ -56,48 +61,65 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
         
         Ext.Array.each(noncollection_fields,function(field){
             var field_type = field.attributeDefinition.AttributeType;
-            console.log(field.name,field_type);
-            edit_field = {
-                dataIndex: field.name,
-                text: field.displayName
-            };
-            
-            if ( field_type == "OBJECT" || field.allowedValues.Count > 0 ) {
-                edit_field.editor = {
-                    xtype: 'tsaccessiblefieldcombobox',
-                    model: me.modelType,
-                    context: {
-                        project: me.project,
-                        projectScopeDown: false,
-                        projectScopeUp: false
-                    },
-                    field: edit_field.dataIndex,
-                    fieldLabel: edit_field.text,
-                    componentId: 'comboBox-' + edit_field.dataIndex
+            console.log(field.name,field_type,field.allowedValues.Count);
+            if ( Ext.Array.indexOf(me.forbidden_fields,field.name) === -1 ) {
+                var edit_field = {
+                    dataIndex: field.name,
+                    text: field.displayName
                 };
-            } else {
-                // rich text field/TEXT/text area
-                if ( field_type === "TEXT" ) {
+                
+                var dropdown = false;
+                if ( field_type === "OBJECT" ) {
+                    dropdown = true;
+                }
+                if ( field.allowedValues.Count > 0 ) {
+                    dropdown = true;
+                }
+                console.log(field.name, field.allowedValues, Ext.isArray(field.allowedValues));
+                
+                if ( Ext.isArray(field.allowedValues) && field.allowedValues.length > 0 ) {
+                    dropdown = true;
+                }
+                if ( dropdown ) {
                     edit_field.editor = {
-                        field: field.name,
-                        fieldLabel: field.displayName + " rich text field",
-                        xtype: 'tsaccessiblehtmleditor',
-                        iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
-                        listeners: {
-                            tab: function(ed,shift_key_pressed) {
-                                me._moveToNextItem(ed,shift_key_pressed);
+                        xtype: 'tsaccessiblefieldcombobox',
+                        model: me.modelType,
+                        context: {
+                            project: me.project,
+                            projectScopeDown: false,
+                            projectScopeUp: false
+                        },
+                        field: edit_field.dataIndex,
+                        fieldLabel: edit_field.text,
+                        componentId: 'comboBox-' + edit_field.dataIndex
+                    };
+                } else {
+                    // rich text field/TEXT/text area
+                    if ( field_type === "TEXT" ) {
+                        edit_field.editor = {
+                            field: field.name,
+                            fieldLabel: field.displayName + " rich text field",
+                            xtype: 'tsaccessiblehtmleditor',
+                            iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
+                            listeners: {
+                                tab: function(ed,shift_key_pressed) {
+                                    me._moveToNextItem(ed,shift_key_pressed);
+                                }
                             }
                         }
+                    } else {
+                        edit_field.editor = { 
+                            xtype:'rallytextfield',
+                            field: field.name
+                        };
                     }
-                } else {
-                    edit_field.editor = { xtype:'rallytextfield' };
                 }
+                
+                // set readonly where necessary
+                edit_field.editor.readOnly = field.readOnly;
+                
+                me.field_columns.push(edit_field);
             }
-            
-            // set readonly where necessary
-            edit_field.editor.readOnly = field.readOnly;
-            
-            me.field_columns.push(edit_field);
         });
         this.fireEvent('load',this);
     },

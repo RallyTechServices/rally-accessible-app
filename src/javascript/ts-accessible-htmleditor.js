@@ -19,8 +19,7 @@ Ext.define('Rally.technicalservices.accessible.htmleditor',{
     /* */
     initComponent: function() {
         this.callParent();
-        console.log(this.fieldSubTpl);
-        console.log(this.getSubTplData( ) );
+
         this.addEvents(
         /**
              * @event tab

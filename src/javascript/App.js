@@ -74,55 +74,58 @@ Ext.define('CustomApp', {
         
         me.down('#selector_box').add(this.projectSelector);
 
+        me.down('#selector_box').add({
+            xtype: 'button',
+            text: 'Get Stories and Defects',
+            itemId: 'run_query_button',
+            buttonLabel : 'Get Stories and Defects',
+            handler: me._getItems,
+            scope: me
+        });   
+
+        Ext.get('alert_area').set({role:'alert'});
+        
+        me.down('#run_query_button').focus();
+        me._alert("The application is loaded and available in an iFrame on the page. " +
+                "Focus should be on the Get Stories button, which is after the project selector combo box.");
+
+        
+    },
+    _getItems: function() {
+        var me = this;
+        this._log("_getItems");
         me.field_helpers["defect"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
             modelType:'Defect',
-            project: me.getContext().getProjectRef(),
+            project: projectSelector.value,
             listeners: {
                 load: function() {
                     me._log("Loaded defect field helper");
                     me.field_helpers["hierarchicalrequirement"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
                         modelType:'UserStory',
-                        project: me.getContext().getProjectRef(),
+                        project: projectSelector.value,
                         listeners: {
                         load: function() {
                                 me._log("Loaded user story field helper");
-            
-                                me.down('#selector_box').add({
-                                    xtype: 'button',
-                                    text: 'Get Stories and Defects',
-                                    itemId: 'run_query_button',
-                                    buttonLabel : 'Get Stories and Defects',
-                                    handler: me._getItems,
-                                    scope: me
-                                });   
-                        
-    //                            Ext.get('alert_area').set({role:'alert'});
-                                
-                                me.down('#run_query_button').focus();
-                                me._alert("The application is loaded and available in an iFrame on the page. " +
-                                        "Focus should be on the Get Stories button, which is after the project selector combo box.");
+                                me.return_message_array = []; // fill with message from each of the queries
+                                // Get the ref of the selected project
+                                var selected_project_ref = projectSelector.value;
+                                var context = me.getContext();
+                                context.put('project',selected_project_ref);
+                                context.put('projectScopeDown',false);
+                                me.setContext(context);
+                                var selected_project_name = projectSelector.options[projectSelector.selectedIndex].text;
+                                me._alert("Fetching Stories and Defects for " + selected_project_name + " project." );
+                                me._getItemsByType("hierarchicalrequirement",selected_project_ref);
+                                me._getItemsByType("defect",selected_project_ref);
+
                             }
                         }
                     });
                 }
             }
         });
-    },
-    _getItems: function() {
-        this._log("_getItems");
-        this.return_message_array = []; // fill with message from each of the queries
-        // Get the ref of the selected project
-        var selected_project_ref = projectSelector.value;
-        var context = this.getContext();
-        context.put('project',selected_project_ref);
-        context.put('projectScopeDown',false);
-        console.log(context);
-        this.setContext(context);
-        console.log(this.getContext());
-        var selected_project_name = projectSelector.options[projectSelector.selectedIndex].text;
-        this._alert("Fetching Stories and Defects for " + selected_project_name + " project." );
-        this._getItemsByType("hierarchicalrequirement",selected_project_ref);
-        this._getItemsByType("defect",selected_project_ref);
+        
+        
     },
     // Loads/refreshes grid with subset of Stories from selected project
     _getItemsByType: function(type,project_ref) {
@@ -374,9 +377,11 @@ Ext.define('CustomApp', {
         // TODO: have the editor return the new values
         var items = this.recordEditor.items;
         items.each( function(item) {
-            if (item.value && item.itemId ) {
-                var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
-                var field_name = me.edit_fields[type][index].dataIndex;
+            me._log(item);
+            if (item.xtype !== "button" && item.getValue() && item.getValue() !== "-- No Entry --") {
+                me._log(item);
+                var field_name = item.field.name || item.field;
+                
                 record.set(field_name, item.getValue());
                 me._log(["Setting field/value",field_name, item.getValue()]);
             }

@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Aug 11 2013 21:13:59 GMT-0700 (PDT) -->
+    <!--  Build Date: Mon Aug 12 2013 09:53:50 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -85,55 +85,58 @@ Ext.define('CustomApp', {
         
         me.down('#selector_box').add(this.projectSelector);
 
+        me.down('#selector_box').add({
+            xtype: 'button',
+            text: 'Get Stories and Defects',
+            itemId: 'run_query_button',
+            buttonLabel : 'Get Stories and Defects',
+            handler: me._getItems,
+            scope: me
+        });   
+
+        Ext.get('alert_area').set({role:'alert'});
+        
+        me.down('#run_query_button').focus();
+        me._alert("The application is loaded and available in an iFrame on the page. " +
+                "Focus should be on the Get Stories button, which is after the project selector combo box.");
+
+        
+    },
+    _getItems: function() {
+        var me = this;
+        this._log("_getItems");
         me.field_helpers["defect"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
             modelType:'Defect',
-            project: me.getContext().getProjectRef(),
+            project: projectSelector.value,
             listeners: {
                 load: function() {
                     me._log("Loaded defect field helper");
                     me.field_helpers["hierarchicalrequirement"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
                         modelType:'UserStory',
-                        project: me.getContext().getProjectRef(),
+                        project: projectSelector.value,
                         listeners: {
                         load: function() {
                                 me._log("Loaded user story field helper");
-            
-                                me.down('#selector_box').add({
-                                    xtype: 'button',
-                                    text: 'Get Stories and Defects',
-                                    itemId: 'run_query_button',
-                                    buttonLabel : 'Get Stories and Defects',
-                                    handler: me._getItems,
-                                    scope: me
-                                });   
-                        
-    //                            Ext.get('alert_area').set({role:'alert'});
-                                
-                                me.down('#run_query_button').focus();
-                                me._alert("The application is loaded and available in an iFrame on the page. " +
-                                        "Focus should be on the Get Stories button, which is after the project selector combo box.");
+                                me.return_message_array = []; // fill with message from each of the queries
+                                // Get the ref of the selected project
+                                var selected_project_ref = projectSelector.value;
+                                var context = me.getContext();
+                                context.put('project',selected_project_ref);
+                                context.put('projectScopeDown',false);
+                                me.setContext(context);
+                                var selected_project_name = projectSelector.options[projectSelector.selectedIndex].text;
+                                me._alert("Fetching Stories and Defects for " + selected_project_name + " project." );
+                                me._getItemsByType("hierarchicalrequirement",selected_project_ref);
+                                me._getItemsByType("defect",selected_project_ref);
+
                             }
                         }
                     });
                 }
             }
         });
-    },
-    _getItems: function() {
-        this._log("_getItems");
-        this.return_message_array = []; // fill with message from each of the queries
-        // Get the ref of the selected project
-        var selected_project_ref = projectSelector.value;
-        var context = this.getContext();
-        context.put('project',selected_project_ref);
-        context.put('projectScopeDown',false);
-        console.log(context);
-        this.setContext(context);
-        console.log(this.getContext());
-        var selected_project_name = projectSelector.options[projectSelector.selectedIndex].text;
-        this._alert("Fetching Stories and Defects for " + selected_project_name + " project." );
-        this._getItemsByType("hierarchicalrequirement",selected_project_ref);
-        this._getItemsByType("defect",selected_project_ref);
+        
+        
     },
     // Loads/refreshes grid with subset of Stories from selected project
     _getItemsByType: function(type,project_ref) {
@@ -385,9 +388,11 @@ Ext.define('CustomApp', {
         // TODO: have the editor return the new values
         var items = this.recordEditor.items;
         items.each( function(item) {
-            if (item.value && item.itemId ) {
-                var index = parseInt( item.itemId.replace(/^\D+/g, ''), 10 );
-                var field_name = me.edit_fields[type][index].dataIndex;
+            me._log(item);
+            if (item.xtype !== "button" && item.getValue() && item.getValue() !== "-- No Entry --") {
+                me._log(item);
+                var field_name = item.field.name || item.field;
+                
                 record.set(field_name, item.getValue());
                 me._log(["Setting field/value",field_name, item.getValue()]);
             }
@@ -904,6 +909,11 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
         project:null,
         model: null
     },
+    forbidden_fields: ["ObjectID","DisplayColor","LatestDiscussionAgeInMinutes",
+        "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
+        "Subscription","Workspace","Project","RevisionHistory","Blocker","DirectChildrenCount",
+        "Parent","PortfolioItem","Feature"],
+        
     initComponent: function(){
         this.callParent();
         this.addEvents(
@@ -939,48 +949,65 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
         
         Ext.Array.each(noncollection_fields,function(field){
             var field_type = field.attributeDefinition.AttributeType;
-            console.log(field.name,field_type);
-            edit_field = {
-                dataIndex: field.name,
-                text: field.displayName
-            };
-            
-            if ( field_type == "OBJECT" || field.allowedValues.Count > 0 ) {
-                edit_field.editor = {
-                    xtype: 'tsaccessiblefieldcombobox',
-                    model: me.modelType,
-                    context: {
-                        project: me.project,
-                        projectScopeDown: false,
-                        projectScopeUp: false
-                    },
-                    field: edit_field.dataIndex,
-                    fieldLabel: edit_field.text,
-                    componentId: 'comboBox-' + edit_field.dataIndex
+            console.log(field.name,field_type,field.allowedValues.Count);
+            if ( Ext.Array.indexOf(me.forbidden_fields,field.name) === -1 ) {
+                var edit_field = {
+                    dataIndex: field.name,
+                    text: field.displayName
                 };
-            } else {
-                // rich text field/TEXT/text area
-                if ( field_type === "TEXT" ) {
+                
+                var dropdown = false;
+                if ( field_type === "OBJECT" ) {
+                    dropdown = true;
+                }
+                if ( field.allowedValues.Count > 0 ) {
+                    dropdown = true;
+                }
+                console.log(field.name, field.allowedValues, Ext.isArray(field.allowedValues));
+                
+                if ( Ext.isArray(field.allowedValues) && field.allowedValues.length > 0 ) {
+                    dropdown = true;
+                }
+                if ( dropdown ) {
                     edit_field.editor = {
-                        field: field.name,
-                        fieldLabel: field.displayName + " rich text field",
-                        xtype: 'tsaccessiblehtmleditor',
-                        iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
-                        listeners: {
-                            tab: function(ed,shift_key_pressed) {
-                                me._moveToNextItem(ed,shift_key_pressed);
+                        xtype: 'tsaccessiblefieldcombobox',
+                        model: me.modelType,
+                        context: {
+                            project: me.project,
+                            projectScopeDown: false,
+                            projectScopeUp: false
+                        },
+                        field: edit_field.dataIndex,
+                        fieldLabel: edit_field.text,
+                        componentId: 'comboBox-' + edit_field.dataIndex
+                    };
+                } else {
+                    // rich text field/TEXT/text area
+                    if ( field_type === "TEXT" ) {
+                        edit_field.editor = {
+                            field: field.name,
+                            fieldLabel: field.displayName + " rich text field",
+                            xtype: 'tsaccessiblehtmleditor',
+                            iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
+                            listeners: {
+                                tab: function(ed,shift_key_pressed) {
+                                    me._moveToNextItem(ed,shift_key_pressed);
+                                }
                             }
                         }
+                    } else {
+                        edit_field.editor = { 
+                            xtype:'rallytextfield',
+                            field: field.name
+                        };
                     }
-                } else {
-                    edit_field.editor = { xtype:'rallytextfield' };
                 }
+                
+                // set readonly where necessary
+                edit_field.editor.readOnly = field.readOnly;
+                
+                me.field_columns.push(edit_field);
             }
-            
-            // set readonly where necessary
-            edit_field.editor.readOnly = field.readOnly;
-            
-            me.field_columns.push(edit_field);
         });
         this.fireEvent('load',this);
     },
@@ -1032,8 +1059,7 @@ Ext.define('Rally.technicalservices.accessible.htmleditor',{
     /* */
     initComponent: function() {
         this.callParent();
-        console.log(this.fieldSubTpl);
-        console.log(this.getSubTplData( ) );
+
         this.addEvents(
         /**
              * @event tab
