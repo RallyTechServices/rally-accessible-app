@@ -52,6 +52,7 @@ module.exports = function(grunt) {
                     template: 'test/slow/custom.tmpl',
                     templateOptions: config,
                     keepRunner: true,
+                    timeout: 50000,
                     junit: { 
                         path: 'test/logs/slow'
                     }

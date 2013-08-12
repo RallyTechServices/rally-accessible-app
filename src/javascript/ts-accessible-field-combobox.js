@@ -91,7 +91,6 @@
             this.valueField = '_ref';
             this.displayField = 'Name';
         }
-            
         this.store = Ext.create('Ext.data.Store', {
             fields: [this.valueField, this.displayField],
             data: []

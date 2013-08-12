@@ -61,28 +61,52 @@ Ext.define('CustomApp', {
     },
     
     _onProjectStoreLoaded: function(store, data) {
+        var me = this;
+        Ext.get('alert_area').set({role:'alert'});
+        this._alert("The application is loading.");
+        me.field_helpers = {};
+        
         this.projectSelector = Ext.create('Rally.technicalservices.accessible.Combobox', {
             store: store,
             componentId: 'projectSelector',
             fieldLabel: 'Project'
         });
         
-        this.down('#selector_box').add(this.projectSelector);
-        
-        this.down('#selector_box').add({
-            xtype: 'button',
-            text: 'Get Stories and Defects',
-            itemId: 'run_query_button',
-            buttonLabel : 'Get Stories and Defects',
-            handler: this._getItems,
-            scope: this
-        });   
+        me.down('#selector_box').add(this.projectSelector);
 
-        Ext.get('alert_area').set({role:'alert'});
-        
-        this.down('#run_query_button').focus();
-        this._alert("The application is loaded and available in an iFrame on the page. " +
-                "Focus should be on the Get Stories button, which is after the project selector combo box.");
+        me.field_helpers["defect"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
+            modelType:'Defect',
+            project: me.getContext().getProjectRef(),
+            listeners: {
+                load: function() {
+                    me._log("Loaded defect field helper");
+                    me.field_helpers["hierarchicalrequirement"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
+                        modelType:'UserStory',
+                        project: me.getContext().getProjectRef(),
+                        listeners: {
+                        load: function() {
+                                me._log("Loaded user story field helper");
+            
+                                me.down('#selector_box').add({
+                                    xtype: 'button',
+                                    text: 'Get Stories and Defects',
+                                    itemId: 'run_query_button',
+                                    buttonLabel : 'Get Stories and Defects',
+                                    handler: me._getItems,
+                                    scope: me
+                                });   
+                        
+    //                            Ext.get('alert_area').set({role:'alert'});
+                                
+                                me.down('#run_query_button').focus();
+                                me._alert("The application is loaded and available in an iFrame on the page. " +
+                                        "Focus should be on the Get Stories button, which is after the project selector combo box.");
+                            }
+                        }
+                    });
+                }
+            }
+        });
     },
     _getItems: function() {
         this._log("_getItems");
@@ -108,8 +132,7 @@ Ext.define('CustomApp', {
 
         // Clear out existing grid if present
         if (this.grids[type]) { this.grids[type].destroy(); }
-           
-        
+
         var store = Ext.create('Rally.data.WsapiDataStore',{
             model: type,
             limit: me.table_size,
@@ -213,87 +236,112 @@ Ext.define('CustomApp', {
         me._log("Field Editor Defs");
         var new_field_array = [];
         var type = record.get('_type');
-        var field_array = this.edit_fields[type];
         
-        Rally.data.ModelFactory.getModel({
-            type: type,
-            success: function(model) {
-                Ext.Array.each(field_array, function(field) {
-                    model.getField(field.dataIndex).getAllowedValueStore().load({
-                        callback: function(records, operation, success) {
-                            var allowed_values = [];
-                            Ext.Array.each(records, function(allowedValue) {
-                                allowed_values.push(allowedValue.get('StringValue'));
-                            });
-                            me._log(field.dataIndex + " ... " + allowed_values.join(','));
-                            var new_field_def = field;
-                            field.editor = { xtype:'rallytextfield' };
-                            if ( allowed_values.length > 0 ) {
-                                field.editor = {
-                                    xtype: 'tsaccessiblefieldcombobox',
-                                    model: type,
-                                    context: {
-                                        project: me.getContext().getProjectRef(),
-                                        projectScopeDown: false,
-                                        projectScopeUp: false
-                                    },
-                                    field: field.dataIndex,
-                                    fieldLabel: field.text,
-                                    componentId: 'comboBox-' + field.dataIndex
-                                }
-                            } else {
-                                var rally_type = model.getField(field.dataIndex).attributeDefinition.AttributeType;
-                                if (rally_type === "TEXT"){
-                                    field.editor = {
-                                        field: field.dataIndex,
-                                        fieldLabel: field.text + " multiline rich text field",
-                                        xtype: 'tsaccessiblehtmleditor',
-                                        iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
-
-                                        listeners: {
-                                            tab: function(ed,shift_key_pressed) {
-                                                me._moveToNextItem(ed,shift_key_pressed);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            me._log(["field",model.getField(field.dataIndex)]);
-                            if ( model.getField(field.dataIndex).readOnly ) {
-                                field.editor.readOnly = true;
-                            }
-                            new_field_array.push(field);
-                            
-                            if (field_array.length == new_field_array.length ) {
-                                me.recordEditor = Ext.create('Rally.technicalservices.accessible.editarea',{
-                                    fields: field_array,
-                                    record: record,
-                                    buttons: [
-                                        { text: 'Save' },
-                                        { text: 'Cancel' }
-                                    ],
-                                    listeners: {
-                                        buttonclick: function(editor,record,button) {
-                                            if ( button.text == "Save" ) {
-                                                me._saveRecord(record);
-                                            } else {
-                                                me._alert('Cancel pressed. Editor cleared.');
-                                                me.recordEditor.destroy();
-                                            }
-                                        }
-                                    }
-                                });
-                             
-                                me.down('#editor_box').add(me.recordEditor);
-                                
-                                me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
-                                me.recordEditor.setFocusToItemNumber(0,true);
-                            }
-                        }
-                    });
-                });
+        field_array = me.field_helpers[type].getFieldsAsColumns();
+        
+        me.recordEditor = Ext.create('Rally.technicalservices.accessible.editarea',{
+            fields: field_array,
+            record: record,
+            buttons: [
+                { text: 'Save' },
+                { text: 'Cancel' }
+            ],
+            listeners: {
+                buttonclick: function(editor,record,button) {
+                    if ( button.text == "Save" ) {
+                        me._saveRecord(record);
+                    } else {
+                        me._alert('Cancel pressed. Editor cleared.');
+                        me.recordEditor.destroy();
+                    }
+                }
             }
         });
+     
+        me.down('#editor_box').add(me.recordEditor);
+        
+        me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
+        me.recordEditor.setFocusToItemNumber(0,true);
+//        var field_array = this.edit_fields[type];
+//        Rally.data.ModelFactory.getModel({
+//            type: type,
+//            success: function(model) {
+//                Ext.Array.each(field_array, function(field) {
+//                    model.getField(field.dataIndex).getAllowedValueStore().load({
+//                        callback: function(records, operation, success) {
+//                            var allowed_values = [];
+//                            Ext.Array.each(records, function(allowedValue) {
+//                                allowed_values.push(allowedValue.get('StringValue'));
+//                            });
+//                            me._log(field.dataIndex + " ... " + allowed_values.join(','));
+//                            var new_field_def = field;
+//                            field.editor = { xtype:'rallytextfield' };
+//                            if ( allowed_values.length > 0 ) {
+//                                field.editor = {
+//                                    xtype: 'tsaccessiblefieldcombobox',
+//                                    model: type,
+//                                    context: {
+//                                        project: me.getContext().getProjectRef(),
+//                                        projectScopeDown: false,
+//                                        projectScopeUp: false
+//                                    },
+//                                    field: field.dataIndex,
+//                                    fieldLabel: field.text,
+//                                    componentId: 'comboBox-' + field.dataIndex
+//                                }
+//                            } else {
+//                                var rally_type = model.getField(field.dataIndex).attributeDefinition.AttributeType;
+//                                if (rally_type === "TEXT"){
+//                                    field.editor = {
+//                                        field: field.dataIndex,
+//                                        fieldLabel: field.text + " multiline rich text field",
+//                                        xtype: 'tsaccessiblehtmleditor',
+//                                        iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
+//
+//                                        listeners: {
+//                                            tab: function(ed,shift_key_pressed) {
+//                                                me._moveToNextItem(ed,shift_key_pressed);
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            me._log(["field",model.getField(field.dataIndex)]);
+//                            if ( model.getField(field.dataIndex).readOnly ) {
+//                                field.editor.readOnly = true;
+//                            }
+//                            new_field_array.push(field);
+//                            
+//                            if (field_array.length == new_field_array.length ) {
+//                                me.recordEditor = Ext.create('Rally.technicalservices.accessible.editarea',{
+//                                    fields: field_array,
+//                                    record: record,
+//                                    buttons: [
+//                                        { text: 'Save' },
+//                                        { text: 'Cancel' }
+//                                    ],
+//                                    listeners: {
+//                                        buttonclick: function(editor,record,button) {
+//                                            if ( button.text == "Save" ) {
+//                                                me._saveRecord(record);
+//                                            } else {
+//                                                me._alert('Cancel pressed. Editor cleared.');
+//                                                me.recordEditor.destroy();
+//                                            }
+//                                        }
+//                                    }
+//                                });
+//                             
+//                                me.down('#editor_box').add(me.recordEditor);
+//                                
+//                                me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
+//                                me.recordEditor.setFocusToItemNumber(0,true);
+//                            }
+//                        }
+//                    });
+//                });
+//            }
+//        });
     },
     // hack because the html editor steals focus and won't give it back from tabbing
     _moveToNextItem: function(component,shift_key_pressed) {
