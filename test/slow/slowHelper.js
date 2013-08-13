@@ -1,4 +1,6 @@
+// test_username should be defined in the html
 
+// Stuff for logging in:
 /**
 *
 *  Base64 encode / decode

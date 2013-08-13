@@ -90,6 +90,9 @@
         if ( this.field.allowedValueType ) {
             this.valueField = '_ref';
             this.displayField = 'Name';
+            if ( this.field.allowedValueType._refObjectName == "User" ) {
+                this.displayField = "DisplayName";
+            }
         }
         this.store = Ext.create('Ext.data.Store', {
             fields: [this.valueField, this.displayField],
@@ -104,9 +107,14 @@
     },
 
     _populateStore: function() {
+        var me = this;
         if ( this.field.allowedValueType ) {
+            var modelType = this.field.allowedValueType._refObjectName;
+//            if ( this.field.allowedValueType._refObjectName == "User" ) {
+//                modelType = "Users";
+//            }
             Ext.create('Rally.data.WsapiDataStore',{
-                model: this.field.allowedValueType._refObjectName,
+                model: modelType,
                 autoLoad: true,
                 context: this.context,
                 listeners: {
@@ -114,6 +122,24 @@
                         this._processData(data);
                     },
                     scope: this
+                }
+            });
+        } else if (this.field.attributeDefinition.AttributeType == "BOOLEAN") {
+            var true_field = {};
+            true_field[me.valueField] = true;
+            true_field[me.displayField] = "true";
+            var false_field = {};
+            false_field[me.valueField] = false;
+            false_field[me.displayField] = "false";
+            
+            Ext.create('Rally.data.custom.Store',{
+                data:[false_field,true_field],
+                autoLoad: true,
+                listeners: {
+                    load: function(store,data,success){
+                        this._processData(data);
+                    },
+                    scope:this
                 }
             });
         } else {
@@ -141,7 +167,7 @@
             labelValues.push(allowedValue);
         });
         
-        if (this.field.required === false) {
+        if (this.field.required === false && this.field.attributeDefinition.AttributeType !== "BOOLEAN") {
             var name = "-- No Entry --",
                 value = "";
             if (this.field.attributeDefinition.AttributeType.toLowerCase() === 'rating') {
@@ -149,6 +175,7 @@
                 value = "None";
             }
             var allowedValue = {};
+
             allowedValue[me.valueField] = value;
             allowedValue[me.displayField] = name;
             noEntryValues.push(allowedValue);
@@ -185,8 +212,17 @@
         var selector = Ext.dom.Query.selectNode('select',my_html);
         var options = Ext.dom.Query.select('option',selector);
         
-        if (!Ext.isString(new_value)) {
+        if (!Ext.isString(new_value) && !Ext.isBoolean(new_value)) {
             new_value = new_value._ref;
+        }
+        
+        if (this.field.attributeDefinition.AttributeType === "BOOLEAN") {
+            if (new_value === false){
+                new_value = 'false' ;
+            }
+            if (new_value === true){
+                new_value = 'true' ;
+            }
         }
         
         Ext.Array.each(options, function(option,idx){

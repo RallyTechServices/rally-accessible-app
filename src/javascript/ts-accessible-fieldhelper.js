@@ -69,7 +69,7 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
                 };
                 
                 var dropdown = false;
-                if ( field_type === "OBJECT" ) {
+                if ( field_type === "OBJECT" || field_type === "BOOLEAN") {
                     dropdown = true;
                 }
                 if ( field.allowedValues.Count > 0 ) {

@@ -44,6 +44,7 @@ describe("Field Helper", function(){
             expect(fh.getFieldAsColumn("CreationDate").editor.xtype).toEqual('rallytextfield');
             expect(fh.getFieldAsColumn("CreationDate").editor.readOnly).toEqual(true);
             expect(fh.getFieldAsColumn("State")).toEqual(null);
+            expect(fh.getFieldAsColumn("Blocked").editor.xtype).toEqual('tsaccessiblefieldcombobox');
         });
     });
     it("should return all the fields for a defect",function(){

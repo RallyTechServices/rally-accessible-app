@@ -134,4 +134,124 @@ describe("Field Combobox",function(){
             expect(cb.getValue()).toEqual(iterations[0].get('_ref'));
         });
     });
+    
+    it("should display available owners (users)", function(){
+        var component_loaded = false;
+        var users = [];
+        Ext.create('Rally.data.WsapiDataStore',{
+            model: 'User',
+            autoLoad: true,
+            listeners: {
+                load: function(store,data,success){
+                    users = data;
+                    cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
+                        listeners: { load: function() { component_loaded = true; } },
+                        renderTo: "componentTestArea",
+                        field: 'Owner'
+                    });
+                }
+            }
+        });
+        
+        waitsFor(function(){ return component_loaded }, "Combobox never loaded");
+        runs(function() {
+            expect(users.length).toBeGreaterThan(0); // should set up for the test
+            expect(cb.getValue()).toEqual('');
+            var html_node = cb.getEl().dom;
+            var options = Ext.dom.Query.select('option',html_node);
+            expect(options.length).toEqual(users.length + 1);
+            expect(options[1].innerHTML).toEqual(users[0].get('DisplayName'));
+            expect(options[1].getAttribute('value')).toEqual(users[0].get('_ref'));
+        });
+        
+    });
+    it("should display true/false for boolean fields", function(){
+        var component_loaded = false;
+        var users = [];
+
+        cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea",
+            field: 'Blocked'
+        });
+        
+        waitsFor(function(){ return component_loaded }, "Combobox never loaded");
+        runs(function() {
+            expect(cb.getValue()).toEqual('false');
+            var html_node = cb.getEl().dom;
+            var options = Ext.dom.Query.select('option',html_node);
+            expect(options.length).toEqual(2);
+            expect(options[0].innerHTML).toEqual('false');
+            expect(options[0].getAttribute('value')).toEqual('false');
+            expect(options[1].innerHTML).toEqual('true');
+            expect(options[1].getAttribute('value')).toEqual('true');
+        });
+    });
+        
+    it("should choose 'false' when given false on boolean dropdown", function(){
+        var component_loaded = false;
+        var users = [];
+
+        cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea",
+            field: 'Blocked',
+            value: false
+        });
+        
+        waitsFor(function(){ return component_loaded }, "Combobox never loaded");
+        runs(function() {
+            expect(cb.getValue()).toEqual('false');
+        });
+    });
+
+    it("should choose 'false' when given 'false' on boolean dropdown", function(){
+        var component_loaded = false;
+        var users = [];
+
+        cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea",
+            field: 'Blocked',
+            value: 'false'
+        });
+        
+        waitsFor(function(){ return component_loaded }, "Combobox never loaded");
+        runs(function() {
+            expect(cb.getValue()).toEqual('false');
+        });
+    });
+    it("should choose 'true' when given true on boolean dropdown", function(){
+        var component_loaded = false;
+        var users = [];
+        
+        cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea",
+            field: 'Blocked',
+            value: true
+        });
+        
+        waitsFor(function(){ return component_loaded }, "Combobox never loaded");
+        runs(function() {
+            expect(cb.getValue()).toEqual('true');
+        });
+    });
+    
+    it("should choose 'true' when given 'true' on boolean dropdown", function(){
+        var component_loaded = false;
+        var users = [];
+
+        cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea",
+            field: 'Blocked',
+            value: 'true'
+        });
+        
+        waitsFor(function(){ return component_loaded }, "Combobox never loaded");
+        runs(function() {
+            expect(cb.getValue()).toEqual('true');
+        });
+    });
 });
