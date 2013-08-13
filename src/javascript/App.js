@@ -132,7 +132,6 @@ Ext.define('CustomApp', {
         this._log(['_getItems',type]);
         var me = this;
 
-
         // Clear out existing grid if present
         if (this.grids[type]) { this.grids[type].destroy(); }
 

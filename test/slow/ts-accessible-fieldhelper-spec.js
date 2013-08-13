@@ -130,6 +130,50 @@ describe("Field Helper", function(){
             expect(fh.getFieldAsColumn("PortfolioItem")).toEqual(null);
             expect(fh.getFieldAsColumn("Feature")).toEqual(null);
         });
-        
+    });
+    it("should return all the fields for a story in order",function(){
+        var component_loaded = false;
+        fh = Ext.create('Rally.technicalservices.accessible.FieldHelper', {
+            modelType: 'UserStory',
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea"
+        });
+        waitsFor(function(){return component_loaded;}, "Field Helper never loaded");
+        runs(function() {
+            var field_columns = fh.getFieldsAsColumns();
+            expect(field_columns[0].dataIndex).toEqual('FormattedID');
+            expect(field_columns[1].dataIndex).toEqual('Name');
+        });
+    });
+    it("should return all the fields for a story in order when given a string",function(){
+        var component_loaded = false;
+        fh = Ext.create('Rally.technicalservices.accessible.FieldHelper', {
+            modelType: 'UserStory',
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea",
+            field_order: 'ScheduleState'
+        });
+        waitsFor(function(){return component_loaded;}, "Field Helper never loaded");
+        runs(function() {
+            var field_columns = fh.getFieldsAsColumns();
+            expect(field_columns.length).toBeGreaterThan(10);
+            expect(field_columns[0].dataIndex).toEqual('ScheduleState');
+        });
+    });
+    it("should return all the fields for a story in order when given an array",function(){
+        var component_loaded = false;
+        fh = Ext.create('Rally.technicalservices.accessible.FieldHelper', {
+            modelType: 'UserStory',
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea",
+            field_order: ['Name','ScheduleState']
+        });
+        waitsFor(function(){return component_loaded;}, "Field Helper never loaded");
+        runs(function() {
+            var field_columns = fh.getFieldsAsColumns();
+            expect(field_columns.length).toBeGreaterThan(10);
+            expect(field_columns[0].dataIndex).toEqual('Name');
+            expect(field_columns[1].dataIndex).toEqual('ScheduleState');
+        });
     });
 });

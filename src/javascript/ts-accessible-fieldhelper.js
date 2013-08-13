@@ -19,7 +19,14 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
          * 
          */
         project:null,
-        model: null
+        model: null,
+        /*
+         * @cfg [{String}] field_order
+         * An array of strings defining the order of the first set of fields returned (does not
+         * limit them to this list, others will be provided randomly after the field_order.lenghtth one
+         * 
+         */
+        field_order: ['FormattedID','Name','Description']
     },
     forbidden_fields: ["ObjectID","DisplayColor","LatestDiscussionAgeInMinutes",
         "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
@@ -55,13 +62,12 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
         });
     },
     _processFields: function(noncollection_fields) {
-        console.log(noncollection_fields);
         var me = this;
         this.field_columns = [];
+        this.field_column_hash = {}; // key is field name
         
         Ext.Array.each(noncollection_fields,function(field){
             var field_type = field.attributeDefinition.AttributeType;
-            console.log(field.name,field_type,field.allowedValues.Count);
             if ( Ext.Array.indexOf(me.forbidden_fields,field.name) === -1 ) {
                 var edit_field = {
                     dataIndex: field.name,
@@ -75,7 +81,6 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
                 if ( field.allowedValues.Count > 0 ) {
                     dropdown = true;
                 }
-                console.log(field.name, field.allowedValues, Ext.isArray(field.allowedValues));
                 
                 if ( Ext.isArray(field.allowedValues) && field.allowedValues.length > 0 ) {
                     dropdown = true;
@@ -119,8 +124,10 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
                 edit_field.editor.readOnly = field.readOnly;
                 
                 me.field_columns.push(edit_field);
+                me.field_column_hash[field.name] = edit_field;
             }
         });
+        this.field_columns = this._orderList();
         this.fireEvent('load',this);
     },
     /**
@@ -130,8 +137,33 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
      * @return an array of hashes that look like {@link Ext.grid.Panel} column configs 
      */
     getFieldsAsColumns: function() {
-        console.log(this.field_columns);
         return this.field_columns;
+    },
+    _orderList: function() {
+        var me = this;
+        var ordered_array = [];
+        if (this.field_order) {
+            if (Ext.isString(this.field_order)) {
+                this.field_order = [this.field_order];
+            }
+            if ( this.field_order.length > 0) {
+                Ext.Array.each(this.field_order,function(name){
+                    if (me.field_column_hash[name]) {
+                        ordered_array.push(me.field_column_hash[name]);
+                    }
+                });
+                Ext.Array.each(this.field_columns,function(field){
+                    if (Ext.Array.indexOf(ordered_array,field) === -1 ) {
+                        ordered_array.push(field);
+                    }
+                });
+            } else {
+                ordered_array =  this.field_columns;
+            }
+        } else {
+            ordered_array =  this.field_columns;
+        }
+        return ordered_array;
     },
     /*
      * @param {String} fieldname
