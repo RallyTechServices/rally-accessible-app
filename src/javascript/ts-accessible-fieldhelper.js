@@ -26,7 +26,7 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
          * limit them to this list, others will be provided randomly after the field_order.lenghtth one
          * 
          */
-        field_order: ['FormattedID','Name','Description','ScheduleState','State','PlanEstimate','Iteration','Release'],
+        field_order: ['FormattedID','Name','Description','PlanEstimate','ScheduleState','State','Iteration','Release'],
         app: null
     },
     forbidden_fields: ["ObjectID","DisplayColor","LatestDiscussionAgeInMinutes",

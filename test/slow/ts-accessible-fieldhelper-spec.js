@@ -59,8 +59,6 @@ describe("Field Helper", function(){
             expect(fh.getFieldsAsColumns().length).toBeGreaterThan(20); // 37 is the number of non-collection, non-custom fields for stories in 1.43, I think
             expect(fh.getFieldAsColumn("ScheduleState").editor.xtype).toEqual('tsaccessiblefieldcombobox');
             expect(fh.getFieldAsColumn("ScheduleState").editor.readOnly).toEqual(false);
-            expect(fh.getFieldAsColumn("Requirement").editor.xtype).toEqual('tsaccessiblefieldcombobox');
-            expect(fh.getFieldAsColumn("Requirement").editor.readOnly).toEqual(false);   
             expect(fh.getFieldAsColumn("Name").editor.xtype).toEqual('rallytextfield');
             expect(fh.getFieldAsColumn("Name").editor.readOnly).toEqual(false);
             expect(fh.getFieldAsColumn("Description").editor.xtype).toEqual('tsaccessiblehtmleditor');

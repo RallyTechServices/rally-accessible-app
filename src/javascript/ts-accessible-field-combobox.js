@@ -91,7 +91,7 @@
             this.valueField = '_ref';
             this.displayField = 'Name';
             if ( this.field.allowedValueType._refObjectName == "User" ) {
-                this.displayField = "DisplayName";
+                this.displayField = "_refObjectName";
             }
         }
         this.store = Ext.create('Ext.data.Store', {
