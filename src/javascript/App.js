@@ -14,7 +14,8 @@ Ext.define('CustomApp', {
                     '<p>This app allows a user to select a project and find stories within that project. ' +
                     'Below this paragraph, there is a combobox listing projects and a button that starts the query. ' +
                     'The app will generate two tables, each containing the first ten items owned by the current ' +
-                    'user for the selected project; one table for user stories and one for defects.</p>' }
+                    'user for the selected project; one table for user stories and one for defects.  There are ' +
+                    'also a pair of buttons to allow you to create a story or defect.</p>' }
         ]},
         {xtype:'container',items: [
             {xtype:'container',html:'<h2>Query Options</h2>'},
@@ -81,7 +82,25 @@ Ext.define('CustomApp', {
             buttonLabel : 'Get Stories and Defects',
             handler: me._getItems,
             scope: me
-        });   
+        });
+        
+        me.down('#selector_box').add({
+            xtype: 'button',
+            text: 'Create Story',
+            itemId: 'create_story_button',
+            buttonLabel : 'Create Story',
+            handler: me._createItem,
+            scope: me
+        }); 
+        
+        me.down('#selector_box').add({
+            xtype: 'button',
+            text: 'Create Defect',
+            itemId: 'create_defect_button',
+            buttonLabel : 'Create Defect',
+            handler: me._createItem,
+            scope: me
+        }); 
 
         Ext.get('alert_area').set({role:'alert'});
         
@@ -91,16 +110,61 @@ Ext.define('CustomApp', {
 
         
     },
+    _createItem: function(button) {
+        var me = this;
+        var record_type = "UserStory";
+        if ( button.buttonLabel == "Create Defect") {
+            record_type = "Defect";
+        }
+        
+        Rally.data.ModelFactory.getModel({
+            type: record_type,
+            success: function(model) {
+                me.field_helpers["defect"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
+                    modelType:'Defect',
+                    app: me,
+                    project: projectSelector.value,
+                    listeners: {
+                        load: function() {
+                            me._log("Loaded defect field helper");
+                            me.field_helpers["hierarchicalrequirement"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
+                                app: me,
+                                modelType:'UserStory',
+                                project: projectSelector.value,
+                                listeners: {
+                                load: function() {
+                                        me._log("Loaded user story field helper");
+                                        me.return_message_array = []; // fill with message from each of the queries
+                                        // Get the ref of the selected project
+                                        var selected_project_ref = projectSelector.value;
+                                        var context = me.getContext();
+                                        context.put('project',selected_project_ref);
+                                        context.put('projectScopeDown',false);
+                                        me.setContext(context);
+                                        var selected_project_name = projectSelector.options[projectSelector.selectedIndex].text;
+    
+                                        me._makeEditor(model);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    },
     _getItems: function() {
         var me = this;
         this._log("_getItems");
         me.field_helpers["defect"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
+            app: me,
             modelType:'Defect',
             project: projectSelector.value,
             listeners: {
                 load: function() {
                     me._log("Loaded defect field helper");
                     me.field_helpers["hierarchicalrequirement"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
+                        app: me,
                         modelType:'UserStory',
                         project: projectSelector.value,
                         listeners: {
@@ -235,10 +299,14 @@ Ext.define('CustomApp', {
      */
     _makeEditorFieldDefsAndEditor: function(record) {
         var me = this;
-        me._log("Field Editor Defs");
+        me._log(["Field Editor Defs",record]);
         var new_field_array = [];
-        var type = record.get('_type');
-        
+        var type = record.typePath;
+        if ( !type ) {
+            type = record.get('_type');
+        }
+        me._log(["Record type",type]);
+        me._log(me.field_helpers);
         field_array = me.field_helpers[type].getFieldsAsColumns();
         
         me.recordEditor = Ext.create('Rally.technicalservices.accessible.editarea',{
@@ -262,98 +330,21 @@ Ext.define('CustomApp', {
      
         me.down('#editor_box').add(me.recordEditor);
         
-        me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
+        me._alert("Record available for editing in the edit area");
         me.recordEditor.setFocusToItemNumber(0,true);
-//        var field_array = this.edit_fields[type];
-//        Rally.data.ModelFactory.getModel({
-//            type: type,
-//            success: function(model) {
-//                Ext.Array.each(field_array, function(field) {
-//                    model.getField(field.dataIndex).getAllowedValueStore().load({
-//                        callback: function(records, operation, success) {
-//                            var allowed_values = [];
-//                            Ext.Array.each(records, function(allowedValue) {
-//                                allowed_values.push(allowedValue.get('StringValue'));
-//                            });
-//                            me._log(field.dataIndex + " ... " + allowed_values.join(','));
-//                            var new_field_def = field;
-//                            field.editor = { xtype:'rallytextfield' };
-//                            if ( allowed_values.length > 0 ) {
-//                                field.editor = {
-//                                    xtype: 'tsaccessiblefieldcombobox',
-//                                    model: type,
-//                                    context: {
-//                                        project: me.getContext().getProjectRef(),
-//                                        projectScopeDown: false,
-//                                        projectScopeUp: false
-//                                    },
-//                                    field: field.dataIndex,
-//                                    fieldLabel: field.text,
-//                                    componentId: 'comboBox-' + field.dataIndex
-//                                }
-//                            } else {
-//                                var rally_type = model.getField(field.dataIndex).attributeDefinition.AttributeType;
-//                                if (rally_type === "TEXT"){
-//                                    field.editor = {
-//                                        field: field.dataIndex,
-//                                        fieldLabel: field.text + " multiline rich text field",
-//                                        xtype: 'tsaccessiblehtmleditor',
-//                                        iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
-//
-//                                        listeners: {
-//                                            tab: function(ed,shift_key_pressed) {
-//                                                me._moveToNextItem(ed,shift_key_pressed);
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                            me._log(["field",model.getField(field.dataIndex)]);
-//                            if ( model.getField(field.dataIndex).readOnly ) {
-//                                field.editor.readOnly = true;
-//                            }
-//                            new_field_array.push(field);
-//                            
-//                            if (field_array.length == new_field_array.length ) {
-//                                me.recordEditor = Ext.create('Rally.technicalservices.accessible.editarea',{
-//                                    fields: field_array,
-//                                    record: record,
-//                                    buttons: [
-//                                        { text: 'Save' },
-//                                        { text: 'Cancel' }
-//                                    ],
-//                                    listeners: {
-//                                        buttonclick: function(editor,record,button) {
-//                                            if ( button.text == "Save" ) {
-//                                                me._saveRecord(record);
-//                                            } else {
-//                                                me._alert('Cancel pressed. Editor cleared.');
-//                                                me.recordEditor.destroy();
-//                                            }
-//                                        }
-//                                    }
-//                                });
-//                             
-//                                me.down('#editor_box').add(me.recordEditor);
-//                                
-//                                me._alert("Record " + record.get('FormattedID') + " available for editing in the edit area");
-//                                me.recordEditor.setFocusToItemNumber(0,true);
-//                            }
-//                        }
-//                    });
-//                });
-//            }
-//        });
     },
     // hack because the html editor steals focus and won't give it back from tabbing
+    // TODO: move this into the editor itself
     _moveToNextItem: function(component,shift_key_pressed) {
-        var me = this;
+        this._log(this);
         var direction = 1;
         if ( shift_key_pressed ) { direction = -1; }
-        if (me.recordEditor) {
-            if ( me.recordEditor.items ) {
-                var next_idx = Ext.Array.indexOf(me.recordEditor.items,component) + direction;
-                me.recordEditor.setFocusToItemNumber(next_idx,false);
+        if (this.recordEditor) {
+            if ( this.recordEditor.items ) {
+                this._log("is a recordEditor");
+                var next_idx = Ext.Array.indexOf(this.recordEditor.items,component) + direction;
+                this._log(next_idx);
+                this.recordEditor.setFocusToItemNumber(next_idx,false);
             }
         }
     },
@@ -371,20 +362,28 @@ Ext.define('CustomApp', {
         this._log('_saveRecord');
         var me = this;
         me._alert("Saving Record.");
-        var type = record.get('_type');
+        me._log(record);
         
         // TODO: have the editor return the new values
         var items = this.recordEditor.items;
+        var item_hash = {};
+        
         items.each( function(item) {
-            me._log(item);
             if (item.xtype !== "button" && item.getValue() && item.getValue() !== "-- No Entry --") {
                 me._log(item);
                 var field_name = item.field.name || item.field;
-                
-                record.set(field_name, item.getValue());
+                if (typeof record.set === 'function') {
+                    record.set(field_name, item.getValue());
+                } else {
+                    item_hash[field_name] = item.getValue();
+                }
                 me._log(["Setting field/value",field_name, item.getValue()]);
             }
         });
+        
+        if ( typeof record.set !== 'function') {
+            record = Ext.create(record, item_hash);
+        }
         
         record.save({
             callback: function(result, operation) {

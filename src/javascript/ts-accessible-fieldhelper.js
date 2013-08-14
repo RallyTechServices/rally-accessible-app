@@ -26,12 +26,13 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
          * limit them to this list, others will be provided randomly after the field_order.lenghtth one
          * 
          */
-        field_order: ['FormattedID','Name','Description']
+        field_order: ['FormattedID','Name','Description'],
+        app: null
     },
     forbidden_fields: ["ObjectID","DisplayColor","LatestDiscussionAgeInMinutes",
         "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
         "Subscription","Workspace","Project","RevisionHistory","Blocker","DirectChildrenCount",
-        "Parent","PortfolioItem","Feature"],
+        "Parent","PortfolioItem","Feature","Requirement"],
         
     initComponent: function(){
         this.callParent();
@@ -108,7 +109,9 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
                             iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
                             listeners: {
                                 tab: function(ed,shift_key_pressed) {
-                                    me._moveToNextItem(ed,shift_key_pressed);
+                                    if ( me.app ) {
+                                        me.app._moveToNextItem(ed,shift_key_pressed);
+                                    }
                                 }
                             }
                         }

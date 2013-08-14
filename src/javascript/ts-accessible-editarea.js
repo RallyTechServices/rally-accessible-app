@@ -66,7 +66,7 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         var value = "";
 
         for (var i=0; i<me.fields.length; i++) {
-            if ( me.record ) {
+            if ( me.record && typeof me.record.get === 'function') {
                 value = me.record.get(me.fields[i].dataIndex)
             }
             me._log(["value",value]);
@@ -130,12 +130,13 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         }
     },
     setFocusToItemNumber: function(next_idx,select_text){
-        var me = this;
-        if ( next_idx > -1 && next_idx < me.items.length ) {
-            me.items.getAt(next_idx).focus(select_text);
+        this._log(["Moving to", next_idx]);
+        if ( next_idx > -1 && next_idx < this.items.length ) {
+            this._log(this.items.getAt(next_idx));
+            this.items.getAt(next_idx).focus(select_text);
         }
     },
-        _log: function(msg) {
+    _log: function(msg) {
         window.console && console.log( this.self.getName(),' -- ', msg );  
     }
 });
