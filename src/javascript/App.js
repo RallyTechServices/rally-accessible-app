@@ -2,8 +2,8 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     
-    projectSelector: null,
-    projectStore: null,
+    _projectSelector: null,
+    _projectStore: null,
     grids: {},
 
     table_size: 10,
@@ -67,13 +67,13 @@ Ext.define('CustomApp', {
         this._alert("The application is loading.");
         me.field_helpers = {};
         
-        this.projectSelector = Ext.create('Rally.technicalservices.accessible.Combobox', {
+        this._projectSelector = Ext.create('Rally.technicalservices.accessible.Combobox', {
             store: store,
             componentId: 'projectSelector',
             fieldLabel: 'Project'
         });
         
-        me.down('#selector_box').add(this.projectSelector);
+        me.down('#selector_box').add(this._projectSelector);
 
         me.down('#selector_box').add({
             xtype: 'button',
@@ -112,10 +112,16 @@ Ext.define('CustomApp', {
     },
     _createItem: function(button) {
         var me = this;
+        this._log("_createItem");
+        var selected_project_ref = me._projectSelector.getValue();
+        var selected_project_name = me._projectSelector.getDisplayValue();
+        
         var record_type = "UserStory";
         if ( button.buttonLabel == "Create Defect") {
             record_type = "Defect";
         }
+        
+        me._alert("Preparing edit area to enter values for new item");
         
         Rally.data.ModelFactory.getModel({
             type: record_type,
@@ -123,26 +129,19 @@ Ext.define('CustomApp', {
                 me.field_helpers["defect"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
                     modelType:'Defect',
                     app: me,
-                    project: projectSelector.value,
+                    project: selected_project_ref,
                     listeners: {
                         load: function() {
                             me._log("Loaded defect field helper");
                             me.field_helpers["hierarchicalrequirement"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
                                 app: me,
                                 modelType:'UserStory',
-                                project: projectSelector.value,
+                                project: selected_project_ref,
                                 listeners: {
                                 load: function() {
                                         me._log("Loaded user story field helper");
                                         me.return_message_array = []; // fill with message from each of the queries
-                                        // Get the ref of the selected project
-                                        var selected_project_ref = projectSelector.value;
-                                        var context = me.getContext();
-                                        context.put('project',selected_project_ref);
-                                        context.put('projectScopeDown',false);
-                                        me.setContext(context);
-                                        var selected_project_name = projectSelector.options[projectSelector.selectedIndex].text;
-    
+                                          
                                         me._makeEditor(model);
                                     }
                                 }
@@ -156,28 +155,30 @@ Ext.define('CustomApp', {
     _getItems: function() {
         var me = this;
         this._log("_getItems");
+        var selected_project_ref = me._projectSelector.getValue();
+        var selected_project_name = me._projectSelector.getDisplayValue();
+        // Get the ref of the selected project
+        var context = me.getContext();
+        context.put('project',selected_project_ref);
+        context.put('projectScopeDown',false);
+        me.setContext(context);
+                                
         me.field_helpers["defect"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
             app: me,
             modelType:'Defect',
-            project: projectSelector.value,
+            project: selected_project_ref,
             listeners: {
                 load: function() {
                     me._log("Loaded defect field helper");
                     me.field_helpers["hierarchicalrequirement"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
                         app: me,
                         modelType:'UserStory',
-                        project: projectSelector.value,
+                        project: selected_project_ref,
                         listeners: {
                         load: function() {
                                 me._log("Loaded user story field helper");
                                 me.return_message_array = []; // fill with message from each of the queries
-                                // Get the ref of the selected project
-                                var selected_project_ref = projectSelector.value;
-                                var context = me.getContext();
-                                context.put('project',selected_project_ref);
-                                context.put('projectScopeDown',false);
-                                me.setContext(context);
-                                var selected_project_name = projectSelector.options[projectSelector.selectedIndex].text;
+
                                 me._alert("Fetching Stories and Defects for " + selected_project_name + " project." );
                                 me._getItemsByType("hierarchicalrequirement",selected_project_ref);
                                 me._getItemsByType("defect",selected_project_ref);
@@ -199,6 +200,22 @@ Ext.define('CustomApp', {
         // Clear out existing grid if present
         if (this.grids[type]) { this.grids[type].destroy(); }
 
+        var filters = Ext.create('Rally.data.QueryFilter', {
+             property: 'Owner',
+             operator: '=',
+             value: 'currentuser'
+        });
+        
+        if (type.toLowerCase() === "defect") {
+            filters = filters.or(Ext.create('Rally.data.QueryFilter',{
+                 property: 'SubmittedBy',
+                 operator: '=',
+                 value: 'currentuser'
+            }));
+        }
+        
+        me._log("using filter: " + filters.toString());
+        
         var store = Ext.create('Rally.data.WsapiDataStore',{
             model: type,
             limit: me.table_size,
@@ -208,7 +225,7 @@ Ext.define('CustomApp', {
                 projectScopeUp: false,
                 projectScopeDown: false
             },
-            filters: [ { property: 'Owner', value: 'currentuser' }],
+            filters: filters,
             autoLoad:true,
             listeners: {
                 scope: this,
@@ -364,6 +381,8 @@ Ext.define('CustomApp', {
         me._alert("Saving Record.");
         me._log(record);
         
+        var selected_project_ref = me._projectSelector.getValue();
+
         // TODO: have the editor return the new values
         var items = this.recordEditor.items;
         var item_hash = {};
@@ -382,6 +401,9 @@ Ext.define('CustomApp', {
         });
         
         if ( typeof record.set !== 'function') {
+            item_hash.Project =    selected_project_ref;
+            // todo: set current user
+            //item_hash.SubmittedBy = ;
             record = Ext.create(record, item_hash);
         }
         
