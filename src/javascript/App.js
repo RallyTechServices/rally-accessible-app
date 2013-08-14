@@ -236,28 +236,7 @@ Ext.define('CustomApp', {
         });
         
     },
-    edit_fields: {
-        hierarchicalrequirement:  [
-            {text:'Formatted ID',dataIndex:'FormattedID'},
-            {text:'Name', dataIndex:'Name'},
-            {text:'Description', dataIndex:'Description'},
-            {text:'Schedule State', dataIndex:'ScheduleState' },
-            {text:'Size', dataIndex:'PlanEstimate' },
-            {text:'Release', dataIndex:'Release'},
-            {text:'Iteration', dataIndex:'Iteration'}
-        ],
-        defect:  [
-            {text:'Formatted ID',dataIndex:'FormattedID'},
-            {text:'Name', dataIndex:'Name'},
-            {text:'Schedule State', dataIndex:'ScheduleState' },
-            {text:'Description',dataIndex:'Description'},
-            {text:'State', dataIndex:'State'},
-            
-            {text:'Size', dataIndex:'PlanEstimate' },
-            {text:'Release', dataIndex:'Release'},
-            {text:'Iteration', dataIndex:'Iteration'}
-        ]
-    },
+    
     table_columns: {
         hierarchicalrequirement: [
                 {text:'ID', dataIndex:'FormattedID'},
