@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Aug 12 2013 19:19:35 GMT-0700 (PDT) -->
+    <!--  Build Date: Tue Aug 13 2013 18:38:42 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -804,6 +804,7 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
                 model: modelType,
                 autoLoad: true,
                 context: this.context,
+                filters: [{property:'ObjectID',operator:'>',value:0}],
                 listeners: {
                     load: function(store,data,success){
                         this._processData(data);
@@ -849,9 +850,11 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
 
         Ext.Array.each( records, function(record){
             var allowedValue = {};
-            allowedValue[me.valueField] = record.get(me.valueField);
-            allowedValue[me.displayField] = record.get(me.displayField)
-            labelValues.push(allowedValue);
+            if ( record.get(me.valueField) && record.get(me.valueField) !== "" ) {
+                allowedValue[me.valueField] = record.get(me.valueField);
+                allowedValue[me.displayField] = record.get(me.displayField)
+                labelValues.push(allowedValue);
+            }
         });
         
         if (this.field.required === false && this.field.attributeDefinition.AttributeType !== "BOOLEAN") {

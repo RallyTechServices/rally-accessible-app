@@ -117,6 +117,7 @@
                 model: modelType,
                 autoLoad: true,
                 context: this.context,
+                filters: [{property:'ObjectID',operator:'>',value:0}],
                 listeners: {
                     load: function(store,data,success){
                         this._processData(data);
@@ -162,9 +163,11 @@
 
         Ext.Array.each( records, function(record){
             var allowedValue = {};
-            allowedValue[me.valueField] = record.get(me.valueField);
-            allowedValue[me.displayField] = record.get(me.displayField)
-            labelValues.push(allowedValue);
+            if ( record.get(me.valueField) && record.get(me.valueField) !== "" ) {
+                allowedValue[me.valueField] = record.get(me.valueField);
+                allowedValue[me.displayField] = record.get(me.displayField)
+                labelValues.push(allowedValue);
+            }
         });
         
         if (this.field.required === false && this.field.attributeDefinition.AttributeType !== "BOOLEAN") {

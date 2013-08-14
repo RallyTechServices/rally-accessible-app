@@ -138,9 +138,11 @@ describe("Field Combobox",function(){
     it("should display available owners (users)", function(){
         var component_loaded = false;
         var users = [];
-        Ext.create('Rally.data.WsapiDataStore',{
+        var t=Ext.create('Rally.data.WsapiDataStore',{
             model: 'User',
             autoLoad: true,
+            filters: [{property:'UserName',operator:'contains',value:'@'}],
+            fetch:['ObjectID','DisplayName'],
             listeners: {
                 load: function(store,data,success){
                     users = data;
@@ -155,7 +157,7 @@ describe("Field Combobox",function(){
         
         waitsFor(function(){ return component_loaded }, "Combobox never loaded");
         runs(function() {
-            expect(users.length).toBeGreaterThan(0); // should set up for the test
+            expect(users.length).toBeGreaterThan(2); // should set up for the test
             expect(cb.getValue()).toEqual('');
             var html_node = cb.getEl().dom;
             var options = Ext.dom.Query.select('option',html_node);
@@ -167,7 +169,6 @@ describe("Field Combobox",function(){
     });
     it("should display true/false for boolean fields", function(){
         var component_loaded = false;
-        var users = [];
 
         cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
             listeners: { load: function() { component_loaded = true; } },
@@ -190,7 +191,6 @@ describe("Field Combobox",function(){
         
     it("should choose 'false' when given false on boolean dropdown", function(){
         var component_loaded = false;
-        var users = [];
 
         cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
             listeners: { load: function() { component_loaded = true; } },
@@ -207,7 +207,6 @@ describe("Field Combobox",function(){
 
     it("should choose 'false' when given 'false' on boolean dropdown", function(){
         var component_loaded = false;
-        var users = [];
 
         cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
             listeners: { load: function() { component_loaded = true; } },
@@ -223,7 +222,6 @@ describe("Field Combobox",function(){
     });
     it("should choose 'true' when given true on boolean dropdown", function(){
         var component_loaded = false;
-        var users = [];
         
         cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
             listeners: { load: function() { component_loaded = true; } },
@@ -240,7 +238,6 @@ describe("Field Combobox",function(){
     
     it("should choose 'true' when given 'true' on boolean dropdown", function(){
         var component_loaded = false;
-        var users = [];
 
         cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
             listeners: { load: function() { component_loaded = true; } },
@@ -254,4 +251,25 @@ describe("Field Combobox",function(){
             expect(cb.getValue()).toEqual('true');
         });
     });
+    
+    it("should not have two 'no entry' options", function(){
+        var component_loaded = false;
+        cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea",
+            field:'Package'
+        });
+        
+        waitsFor(function(){ return component_loaded }, "Combobox never loaded");
+        runs(function() {
+            var html_node = cb.getEl().dom;
+            var options = Ext.dom.Query.select('option',html_node);
+            expect(options[0].innerHTML).toEqual('-- No Entry --');
+            expect(options[0].getAttribute('value')).toEqual('-- No Entry --');
+            expect(options[1].innerHTML).toNotEqual('');
+            expect(options[1].getAttribute('value')).toNotEqual('');
+        });
+    });
+    
+    
 });
