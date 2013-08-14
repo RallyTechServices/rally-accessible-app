@@ -37,6 +37,9 @@ Ext.define('CustomApp', {
         //Ext.getBody().set({ role: 'application' });
         this._alert("The application is loading.");
         this._prepareBuffer();
+        
+        this._log(["user",this.getContext().getUser()]);
+        
         this.projectStore = Ext.create('Rally.data.WsapiDataStore', {
             model: 'Project',
             autoLoad: true,
@@ -105,10 +108,9 @@ Ext.define('CustomApp', {
         Ext.get('alert_area').set({role:'alert'});
         
         me.down('#run_query_button').focus();
-        me._alert("The application is loaded and available in an iFrame on the page. " +
+        me._alert("Hi, " + this.getContext().getUser()._refObjectName + ", the application is loaded and available in an iFrame on the page. " +
                 "Focus should be on the Get Stories button, which is after the project selector combo box.");
 
-        
     },
     _createItem: function(button) {
         var me = this;
@@ -381,8 +383,7 @@ Ext.define('CustomApp', {
         
         if ( typeof record.set !== 'function') {
             item_hash.Project =    selected_project_ref;
-            // todo: set current user
-            //item_hash.SubmittedBy = ;
+            item_hash.SubmittedBy = this.getContext().getUser();
             record = Ext.create(record, item_hash);
         }
         
