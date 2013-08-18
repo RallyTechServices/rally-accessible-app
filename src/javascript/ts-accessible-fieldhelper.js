@@ -68,6 +68,7 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
         this.field_column_hash = {}; // key is field name
         
         Ext.Array.each(noncollection_fields,function(field){
+            console.log(field);
             var field_type = field.attributeDefinition.AttributeType;
             if ( Ext.Array.indexOf(me.forbidden_fields,field.name) === -1 ) {
                 var edit_field = {
@@ -104,7 +105,7 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
                     if ( field_type === "TEXT" ) {
                         edit_field.editor = {
                             field: field.name,
-                            fieldLabel: field.displayName + " rich text field",
+                            fieldLabel: edit_field.text + " rich text field",
                             xtype: 'tsaccessiblehtmleditor',
                             iframeAttrTpl: 'role="aria-textbox" aria-multiline="true"',
                             listeners: {
@@ -118,7 +119,8 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
                     } else {
                         edit_field.editor = { 
                             xtype:'rallytextfield',
-                            field: field.name
+                            field: field.name,
+                            fieldLabel: edit_field.text
                         };
                     }
                 }
@@ -128,6 +130,11 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
                 
                 me.field_columns.push(edit_field);
                 me.field_column_hash[field.name] = edit_field;
+                
+                // append (required) to required fields
+                if ( field.required && !field.readOnly ) {
+                    edit_field.editor.fieldLabel += " (required)";
+                }
             }
         });
         this.field_columns = this._orderList();

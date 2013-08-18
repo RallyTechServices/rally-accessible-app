@@ -47,6 +47,25 @@ describe("Field Helper", function(){
             expect(fh.getFieldAsColumn("Blocked").editor.xtype).toEqual('tsaccessiblefieldcombobox');
         });
     });
+    
+    it("should add (required) to required fields for fields that are not read only",function(){
+        var component_loaded = false;
+        fh = Ext.create('Rally.technicalservices.accessible.FieldHelper', {
+            modelType: 'UserStory',
+            listeners: { load: function() { component_loaded = true; } },
+            renderTo: "componentTestArea"
+        });
+        waitsFor(function(){return component_loaded;}, "Field Helper never loaded");
+        runs(function() {
+            expect(fh.getFieldsAsColumns().length).toBeGreaterThan(20); // 37 is the number of non-collection, non-custom fields for stories in 1.43, I think
+            expect(fh.getFieldAsColumn("ScheduleState").editor.fieldLabel).toEqual('Schedule State (required)');
+            expect(fh.getFieldAsColumn("Name").editor.fieldLabel).toEqual('Name (required)');
+            expect(fh.getFieldAsColumn("PlanEstimate").editor.fieldLabel).toEqual('Plan Estimate');
+            expect(fh.getFieldAsColumn("Notes").editor.fieldLabel).toEqual('Notes rich text field');
+            expect(fh.getFieldAsColumn("FormattedID").editor.fieldLabel).toEqual('Formatted ID');
+        });
+    });
+    
     it("should return all the fields for a defect",function(){
         var component_loaded = false;
         fh = Ext.create('Rally.technicalservices.accessible.FieldHelper', {
