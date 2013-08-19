@@ -32,7 +32,8 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
     forbidden_fields: ["ObjectID","DisplayColor","LatestDiscussionAgeInMinutes",
         "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
         "Subscription","Workspace","Project","RevisionHistory","Blocker","DirectChildrenCount",
-        "Parent","PortfolioItem","Feature","Requirement"],
+        "Parent","PortfolioItem","Feature","Requirement",
+        "Changesets","Discussion","Tags","Attachments","Children","Defects"],
         
     initComponent: function(){
         this.callParent();
@@ -55,20 +56,19 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
             type: me.modelType,
             success: function(model){
                 this.model = model;
-                me._processFields(model.getNonCollectionFields());
+                me._processFields(model.getNonCollectionFields(), model.getCollectionFields());
             },
             failure: function(){
                 me._processFields([]);
             }
         });
     },
-    _processFields: function(noncollection_fields) {
+    _processFields: function(noncollection_fields,collection_fields) {
         var me = this;
         this.field_columns = [];
         this.field_column_hash = {}; // key is field name
         
         Ext.Array.each(noncollection_fields,function(field){
-            console.log(field);
             var field_type = field.attributeDefinition.AttributeType;
             if ( Ext.Array.indexOf(me.forbidden_fields,field.name) === -1 ) {
                 var edit_field = {
@@ -137,6 +137,33 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
                 }
             }
         });
+        
+        Ext.Array.each(collection_fields,function(field){
+            if ( Ext.Array.indexOf(me.forbidden_fields,field.name) === -1 ) {
+                console.log(field);
+                var edit_field = {
+                    dataIndex: field.name,
+                    text: field.displayName,
+                    readOnly: true
+                };
+                edit_field.editor = {
+                    xtype: 'tsaccessiblefieldcollectionbox',
+                    model: me.modelType,
+                    context: {
+                        project: me.project,
+                        projectScopeDown: false,
+                        projectScopeUp: false
+                    },
+                    field: field.name,
+                    fieldLabel: field.displayName,
+                    componentId: 'collection-' + edit_field.dataIndex
+                }
+                
+                me.field_columns.push(edit_field);
+                me.field_column_hash[field.name] = edit_field;
+            }
+        });
+        
         this.field_columns = this._orderList();
         this.fireEvent('load',this);
     },

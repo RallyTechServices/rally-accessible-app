@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Aug 18 2013 19:13:47 GMT-0700 (PDT) -->
+    <!--  Build Date: Sun Aug 18 2013 21:20:09 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -395,7 +395,37 @@ Ext.define('CustomApp', {
             this.recordEditor.destroy();
         }
         
-        this._makeEditorFieldDefsAndEditor(record);
+        // reload the record
+        if ( record && typeof record.get === 'function') {
+            var fetch_array = [];
+
+            var type = record.typePath;
+            if ( !type ) {
+                type = record.get('_type');
+            }
+            Ext.Array.each(me.field_helpers[type].getFieldsAsColumns(), function(field){
+                fetch_array.push(field.dataIndex);
+            });
+            var filters = { property:'ObjectID',value:record.get('ObjectID') };
+            
+            Ext.create('Rally.data.WsapiDataStore',{
+                model: type,
+                limit: 1,
+                pageSize: 1,
+                context: { project: null },
+                filters: filters,
+                autoLoad:true,
+                fetch: fetch_array,
+                listeners: {
+                    scope: this,
+                    load: function(store,data,success){
+                        this._makeEditorFieldDefsAndEditor(data[0]);
+                    }
+                }
+            });
+        } else {
+            this._makeEditorFieldDefsAndEditor(record);
+        }
     },
     
     _saveRecord: function(record) {
@@ -650,11 +680,13 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         var items = [];
         var value = "";
 
+        me._log(["record",me.record]);
+        
         for (var i=0; i<me.fields.length; i++) {
             if ( me.record && typeof me.record.get === 'function') {
                 value = me.record.get(me.fields[i].dataIndex)
             }
-            me._log(["value",value]);
+            me._log([me.fields[i].text,value]);
             
             var xtype = 'rallytextfield';
             if ( me.fields[i].editor && typeof(me.fields[i].editor) == "string") {
@@ -674,6 +706,7 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         return items;
     },
     initItems : function() {
+        this._log("initItems");
         var me = this,
             items = me.items;
 
@@ -684,7 +717,6 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
             } else {
                 items = field_objects;
             }
-            
             Ext.Array.each(me.buttons, function(button){
                 var basic_definition = {
                     xtype: 'button',
@@ -697,7 +729,6 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
                 
                 items.push(Ext.merge(basic_definition,button));
             });
-            
         }
         /**
          * The MixedCollection containing all the child items of this container.
@@ -710,7 +741,6 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
             if (!Ext.isArray(items)) {
                 items = [items];
             }
-
             me.add(items);
         }
     },
@@ -724,6 +754,81 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
     _log: function(msg) {
         window.console && console.log( this.self.getName(),' -- ', msg );  
     }
+});
+/**
+  * Gives the user the opportunity to put a string into a box and it constructs a 
+  * quick query: 
+  *  .. put in a formatted ID
+  *  .. put in a details page URL
+  *  .. put in straight text
+  */
+Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
+    extend: 'Ext.Container',
+    alias: 'widget.tsaccessiblefieldcollectionbox',
+    /**
+     * @cfg {String} fieldLabel
+     * The label for the field.
+     */
+     fieldLabel: '',
+     readOnly: true,
+     /**
+      * @cfg {String} model
+      * The name of the model that has the assigned field
+      * 
+      * Defaults to 'UserStory'
+      */
+     model: 'UserStory',
+     field: 'Tasks',
+     value: 0,
+     
+     layout: { type:'hbox' },
+     defaults: { margin: 5, padding: 5 },
+     
+     initComponent: function() {
+        var me = this;
+        me.callParent();
+        me.addEvents(
+            /**
+             * @event
+             * Fires when the field's store has been loaded
+             * @param {Rally.technicalservices.accessible.FieldValueCollection} this
+             */
+            'load'
+        );
+        
+        if ( ! /Count of /.test(me.fieldLabel) ) {
+            me.fieldLabel = "Count of " + me.fieldLabel;
+        }
+        me.value = me.getClearValue(me.value);
+        
+        me.textField = me.add({
+            xtype:'rallytextfield',
+            fieldLabel: me.fieldLabel,
+            readOnly: me.readOnly,
+            value: me.value
+        });
+        
+     },
+     getValue: function() {
+        return this.textField.getValue();
+     },
+     getClearValue: function(value) {
+        var cleaned_value = parseInt(value,10) || 0;
+        
+        console.log(typeof value);
+        
+        if ( typeof value === "object" ) {
+            cleaned_value = value.Count;
+        } 
+        
+        return cleaned_value;
+     },
+     setValue: function(value) {
+        var cleaned_value = this.getClearValue(value);
+        
+        this.textField.setValue(cleaned_value);
+        this.value = cleaned_value;
+     }
 });
 /**
  * A combobox that takes a field & model type and displays a dropdown that doesn't have
@@ -998,7 +1103,8 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
     forbidden_fields: ["ObjectID","DisplayColor","LatestDiscussionAgeInMinutes",
         "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
         "Subscription","Workspace","Project","RevisionHistory","Blocker","DirectChildrenCount",
-        "Parent","PortfolioItem","Feature","Requirement"],
+        "Parent","PortfolioItem","Feature","Requirement",
+        "Changesets","Discussion","Tags","Attachments","Children","Defects"],
         
     initComponent: function(){
         this.callParent();
@@ -1021,20 +1127,19 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
             type: me.modelType,
             success: function(model){
                 this.model = model;
-                me._processFields(model.getNonCollectionFields());
+                me._processFields(model.getNonCollectionFields(), model.getCollectionFields());
             },
             failure: function(){
                 me._processFields([]);
             }
         });
     },
-    _processFields: function(noncollection_fields) {
+    _processFields: function(noncollection_fields,collection_fields) {
         var me = this;
         this.field_columns = [];
         this.field_column_hash = {}; // key is field name
         
         Ext.Array.each(noncollection_fields,function(field){
-            console.log(field);
             var field_type = field.attributeDefinition.AttributeType;
             if ( Ext.Array.indexOf(me.forbidden_fields,field.name) === -1 ) {
                 var edit_field = {
@@ -1103,6 +1208,33 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
                 }
             }
         });
+        
+        Ext.Array.each(collection_fields,function(field){
+            if ( Ext.Array.indexOf(me.forbidden_fields,field.name) === -1 ) {
+                console.log(field);
+                var edit_field = {
+                    dataIndex: field.name,
+                    text: field.displayName,
+                    readOnly: true
+                };
+                edit_field.editor = {
+                    xtype: 'tsaccessiblefieldcollectionbox',
+                    model: me.modelType,
+                    context: {
+                        project: me.project,
+                        projectScopeDown: false,
+                        projectScopeUp: false
+                    },
+                    field: field.name,
+                    fieldLabel: field.displayName,
+                    componentId: 'collection-' + edit_field.dataIndex
+                }
+                
+                me.field_columns.push(edit_field);
+                me.field_column_hash[field.name] = edit_field;
+            }
+        });
+        
         this.field_columns = this._orderList();
         this.fireEvent('load',this);
     },

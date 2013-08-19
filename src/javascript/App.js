@@ -384,7 +384,37 @@ Ext.define('CustomApp', {
             this.recordEditor.destroy();
         }
         
-        this._makeEditorFieldDefsAndEditor(record);
+        // reload the record
+        if ( record && typeof record.get === 'function') {
+            var fetch_array = [];
+
+            var type = record.typePath;
+            if ( !type ) {
+                type = record.get('_type');
+            }
+            Ext.Array.each(me.field_helpers[type].getFieldsAsColumns(), function(field){
+                fetch_array.push(field.dataIndex);
+            });
+            var filters = { property:'ObjectID',value:record.get('ObjectID') };
+            
+            Ext.create('Rally.data.WsapiDataStore',{
+                model: type,
+                limit: 1,
+                pageSize: 1,
+                context: { project: null },
+                filters: filters,
+                autoLoad:true,
+                fetch: fetch_array,
+                listeners: {
+                    scope: this,
+                    load: function(store,data,success){
+                        this._makeEditorFieldDefsAndEditor(data[0]);
+                    }
+                }
+            });
+        } else {
+            this._makeEditorFieldDefsAndEditor(record);
+        }
     },
     
     _saveRecord: function(record) {

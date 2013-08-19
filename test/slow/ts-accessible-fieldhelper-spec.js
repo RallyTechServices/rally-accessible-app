@@ -45,6 +45,7 @@ describe("Field Helper", function(){
             expect(fh.getFieldAsColumn("CreationDate").editor.readOnly).toEqual(true);
             expect(fh.getFieldAsColumn("State")).toEqual(null);
             expect(fh.getFieldAsColumn("Blocked").editor.xtype).toEqual('tsaccessiblefieldcombobox');
+            expect(fh.getFieldAsColumn("Tasks").editor.xtype).toEqual('tsaccessiblefieldcollectionbox');
         });
     });
     
@@ -148,6 +149,7 @@ describe("Field Helper", function(){
             expect(fh.getFieldAsColumn("Feature")).toEqual(null);
         });
     });
+    
     it("should return all the fields for a story in order",function(){
         var component_loaded = false;
         fh = Ext.create('Rally.technicalservices.accessible.FieldHelper', {
