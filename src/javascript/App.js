@@ -17,9 +17,17 @@ Ext.define('CustomApp', {
                     'user for the selected project; one table for user stories and one for defects.  There are ' +
                     'also a pair of buttons to allow you to create a story or defect.</p>' }
         ]},
+        {xtype:'container',items: [ 
+            {xtype:'container',html:'<h2>Project Selection</h2>'},
+            {xtype:'container',itemId:'project_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' }}
+        ]},
         {xtype:'container',items: [
             {xtype:'container',html:'<h2>Query Options</h2>'},
-            {xtype:'container',itemId:'selector_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } }
+            {xtype:'container',itemId:'query_box', defaults: { padding: 5, margin: 5 } }
+        ]},
+        {xtype:'container',items:[
+            {xtype:'container',html:'<h2>Create New Items</h2>'},
+            {xtype:'container',itemId:'create_box',defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox' } }
         ]},
         {xtype:'container',itemId:'grid_box', items: [
             {xtype:'container',html:'<h2>Resulting User Story Grid Area</h2>'},
@@ -76,18 +84,21 @@ Ext.define('CustomApp', {
             fieldLabel: 'Project'
         });
         
-        me.down('#selector_box').add(this._projectSelector);
+        me.down('#project_box').add(this._projectSelector);
 
-        me.down('#selector_box').add({
+        me.down('#query_box').add({
             xtype: 'button',
-            text: 'Get Stories and Defects',
+            text: 'Get My Stories and Defects',
             itemId: 'run_query_button',
-            buttonLabel : 'Get Stories and Defects',
-            handler: me._getItems,
+            buttonLabel : 'Get My Stories and Defects',
+            handler: function(button) {
+                this._filters = null;
+                me._getItems(null);
+            },
             scope: me
         });
         
-        me.down('#selector_box').add({
+        me.down('#create_box').add({
             xtype: 'button',
             text: 'Create Story',
             itemId: 'create_story_button',
@@ -96,7 +107,7 @@ Ext.define('CustomApp', {
             scope: me
         }); 
         
-        me.down('#selector_box').add({
+        me.down('#create_box').add({
             xtype: 'button',
             text: 'Create Defect',
             itemId: 'create_defect_button',
@@ -104,12 +115,24 @@ Ext.define('CustomApp', {
             handler: me._createItem,
             scope: me
         }); 
-
+        
+        me.down('#query_box').add({
+            xtype:'tsaccessiblequerybox',
+            listeners: {
+                querydefined: function(qb, filters){
+                    me._log("querydefined");
+                    this._filters = filters;
+                    me._getItems(filters);
+                },
+                scope: me
+            }
+        });
+        
         Ext.get('alert_area').set({role:'alert'});
         
         me.down('#run_query_button').focus();
         me._alert("Hi, " + this.getContext().getUser()._refObjectName + ", the application is loaded and available in an iFrame on the page. " +
-                "Focus should be on the Get Stories button, which is after the project selector combo box.");
+                "Focus should be on the Get My Stories button, which is after the project selector combo box.");
 
     },
     _createItem: function(button) {
@@ -154,7 +177,7 @@ Ext.define('CustomApp', {
             }
         });
     },
-    _getItems: function() {
+    _getItems: function(filters) {
         var me = this;
         this._log("_getItems");
         var selected_project_ref = me._projectSelector.getValue();
@@ -164,7 +187,7 @@ Ext.define('CustomApp', {
         context.put('project',selected_project_ref);
         context.put('projectScopeDown',false);
         me.setContext(context);
-                                
+
         me.field_helpers["defect"] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
             app: me,
             modelType:'Defect',
@@ -182,8 +205,8 @@ Ext.define('CustomApp', {
                                 me.return_message_array = []; // fill with message from each of the queries
 
                                 me._alert("Fetching Stories and Defects for " + selected_project_name + " project." );
-                                me._getItemsByType("hierarchicalrequirement",selected_project_ref);
-                                me._getItemsByType("defect",selected_project_ref);
+                                me._getItemsByType("hierarchicalrequirement",selected_project_ref,filters);
+                                me._getItemsByType("defect",selected_project_ref,filters);
 
                             }
                         }
@@ -194,39 +217,47 @@ Ext.define('CustomApp', {
         
         
     },
-    // Loads/refreshes grid with subset of Stories from selected project
-    _getItemsByType: function(type,project_ref) {
-        this._log(['_getItems',type]);
+    // Loads a grid with subset of items of the selected type from selected project
+    _getItemsByType: function(type,project_ref,filters) {
+        this._log(['_getItemsByType',type,filters]);
         var me = this;
+        
+        var context = {
+            project: null,
+            projectScopeUp: true,
+            projectScopeDown: true
+        };
 
         // Clear out existing grid if present
         if (this.grids[type]) { this.grids[type].destroy(); }
 
-        var filters = Ext.create('Rally.data.QueryFilter', {
-             property: 'Owner',
-             operator: '=',
-             value: 'currentuser'
-        });
-        
-        if (type.toLowerCase() === "defect") {
-            filters = filters.or(Ext.create('Rally.data.QueryFilter',{
-                 property: 'SubmittedBy',
+        if (!filters) {
+            context = {
+                project: project_ref,
+                projectScopeUp: false,
+                projectScopeDown: false
+            };
+            
+            filters = Ext.create('Rally.data.QueryFilter', {
+                 property: 'Owner',
                  operator: '=',
                  value: 'currentuser'
-            }));
+            });
+            
+            if (type.toLowerCase() === "defect") {
+                filters = filters.or(Ext.create('Rally.data.QueryFilter',{
+                     property: 'SubmittedBy',
+                     operator: '=',
+                     value: 'currentuser'
+                }));
+            }
         }
-        
-        me._log("using filter: " + filters.toString());
         
         var store = Ext.create('Rally.data.WsapiDataStore',{
             model: type,
             limit: me.table_size,
             pageSize: me.table_size,
-            context: {
-                project: project_ref,
-                projectScopeUp: false,
-                projectScopeDown: false
-            },
+            context: context,
             filters: filters,
             autoLoad:true,
             listeners: {
@@ -394,7 +425,7 @@ Ext.define('CustomApp', {
                     // remove the editor
                     me.recordEditor.destroy();
                     // refresh the grid
-                    me._getItems();
+                    me._getItems(me._filters);
                 } else {
                     me._log(operation);
                     alert("Could not save the record. The message from the server is: " +
