@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Aug 18 2013 21:20:09 GMT-0700 (PDT) -->
+    <!--  Build Date: Sun Aug 18 2013 21:25:45 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -149,6 +149,8 @@ Ext.define('CustomApp', {
     _createItem: function(button) {
         var me = this;
         this._log("_createItem");
+        this._clearTargets();
+        
         var selected_project_ref = me._projectSelector.getValue();
         var selected_project_name = me._projectSelector.getDisplayValue();
         
@@ -191,6 +193,8 @@ Ext.define('CustomApp', {
     _getItems: function(filters) {
         var me = this;
         this._log("_getItems");
+        this._clearTargets();
+        
         var selected_project_ref = me._projectSelector.getValue();
         var selected_project_name = me._projectSelector.getDisplayValue();
         // Get the ref of the selected project
@@ -477,7 +481,16 @@ Ext.define('CustomApp', {
         
 
     },
-
+    _clearTargets: function() {
+        if ( this.recordEditor ) {
+            this.recordEditor.destroy();
+        }
+        if (this.grids !== {} ) { 
+            for ( var i in this.grids ) {
+                if ( this.grids[i] ) { this.grids[i].destroy(); }
+            }
+        }
+    },
     _log: function(msg) {
         window.console && console.log( this.self.getName(),' -- ', msg );  
     },

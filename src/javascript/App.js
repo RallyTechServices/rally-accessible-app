@@ -138,6 +138,8 @@ Ext.define('CustomApp', {
     _createItem: function(button) {
         var me = this;
         this._log("_createItem");
+        this._clearTargets();
+        
         var selected_project_ref = me._projectSelector.getValue();
         var selected_project_name = me._projectSelector.getDisplayValue();
         
@@ -180,6 +182,8 @@ Ext.define('CustomApp', {
     _getItems: function(filters) {
         var me = this;
         this._log("_getItems");
+        this._clearTargets();
+        
         var selected_project_ref = me._projectSelector.getValue();
         var selected_project_name = me._projectSelector.getDisplayValue();
         // Get the ref of the selected project
@@ -466,7 +470,16 @@ Ext.define('CustomApp', {
         
 
     },
-
+    _clearTargets: function() {
+        if ( this.recordEditor ) {
+            this.recordEditor.destroy();
+        }
+        if (this.grids !== {} ) { 
+            for ( var i in this.grids ) {
+                if ( this.grids[i] ) { this.grids[i].destroy(); }
+            }
+        }
+    },
     _log: function(msg) {
         window.console && console.log( this.self.getName(),' -- ', msg );  
     },
