@@ -25,9 +25,14 @@ describe("Field Collection Summary",function(){
         var html_node = cb.getEl().dom;
         var labels = Ext.dom.Query.select('label',html_node);
         var inputs = Ext.dom.Query.select('input',html_node);
+        var buttons = Ext.dom.Query.select('button',html_node);
+        
         expect(labels.length).toEqual(1);
         expect(inputs.length).toEqual(1);
         expect(labels[0].getAttribute("for")).toEqual(inputs[0].id);
+        expect(buttons.length).toEqual(1);
+        expect(buttons[0].text).toEqual("View Tasks");
+        
     });
     
     it("should show zero if not given a value",function(){
