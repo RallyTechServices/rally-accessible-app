@@ -39,7 +39,14 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
              * @param {Ext.data.Model} Rally record 
              * @param {Ext.button} The button that was clicked
              */
-            'buttonclick'
+            'buttonclick',
+            /**
+              * @event alert
+              * Fires when the table of children has been loaded
+              * @param {Rally.technicalservices.accessible.queryBox} this
+              * @param {String} a message to put into the alert area
+              */
+             'alert'
         );
     },
     getTemplateArgs: function() {
@@ -78,10 +85,17 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
                 xtype = me.fields[i].editor;
             }
             var thisItem = {
+                record: me.record,
                 xtype: xtype,
                 fieldLabel: me.fields[i].text,
                 value: value,
-                itemId: "field_" + i
+                itemId: "field_" + i,
+                listeners: {
+                    alert: function(that, message) {
+                        // bubble up event
+                        me.fireEvent('alert',that,message);
+                    }
+                }
             };
             if ( me.fields[i].editor && typeof(me.fields[i].editor != "string") ) {
                 Ext.merge(thisItem,me.fields[i].editor);

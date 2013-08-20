@@ -31,7 +31,8 @@ describe("Field Collection Summary",function(){
         expect(inputs.length).toEqual(1);
         expect(labels[0].getAttribute("for")).toEqual(inputs[0].id);
         expect(buttons.length).toEqual(1);
-        expect(buttons[0].text).toEqual("View Tasks");
+        var button_text = Ext.dom.Query.select('span',buttons[0]);
+        expect(button_text[0].innerHTML).toEqual("View Tasks");
         
     });
     

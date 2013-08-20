@@ -357,6 +357,9 @@ Ext.define('CustomApp', {
                         me._alert('Cancel pressed. Editor cleared.');
                         me.recordEditor.destroy();
                     }
+                },
+                alert: function(source,message) {
+                    me._alert(message);
                 }
             }
         });

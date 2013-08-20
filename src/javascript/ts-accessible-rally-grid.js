@@ -32,7 +32,12 @@ Ext.define('Rally.technicalservices.accessible.grid', {
          * @cfg {Array}
          * Accepts {@link Ext.grid.Panel} column configs
          */
-        columns: []
+        columns: [],
+        /**
+         * @cfg {String} prefix
+         * A prefix to add to the id of each button in the table
+         */
+        prefix: null
     },
     
     initComponent: function(){

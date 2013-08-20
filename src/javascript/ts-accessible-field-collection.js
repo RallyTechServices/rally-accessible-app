@@ -23,6 +23,7 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
      model: 'UserStory',
      field: 'Tasks',
      value: 0,
+     record: null,
      
      layout: { type:'hbox' },
      defaults: { margin: 5, padding: 5 },
@@ -32,11 +33,19 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
         me.callParent();
         me.addEvents(
             /**
-             * @event
+             * @event buttonpressed
              * Fires when the field's store has been loaded
              * @param {Rally.technicalservices.accessible.FieldValueCollection} this
+             * @param {Rally.ui.Button} button
              */
-            'load'
+            'buttonpressed',
+             /**
+              * @event alert
+               * Fires when the table of children has been loaded
+              * @param {Rally.technicalservices.accessible.queryBox} this
+              * @param {String} a message to put into the alert area
+              */
+             'alert'
         );
         
         if ( ! /Count of /.test(me.fieldLabel) ) {
@@ -51,14 +60,56 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
             value: me.value
         });
         
+        me.viewButton = me.add({
+            xtype: 'button',
+            text: 'View ' + me.field,
+            buttonLabel : 'View ' + me.field,
+            handler: me._viewButtonPressed,
+            scope: me
+        });
+     },
+     _table_columns: {
+        "Task":  [
+                {text:'ID', dataIndex:'FormattedID'},
+                {text:'Name', dataIndex:'Name'},
+                {text:'State', dataIndex:'State'}
+            ]
+        
+     },
+     _viewButtonPressed: function(button) {
+        var me = this;
+        if ( me.getValue() > 0 ) {
+            var sub_type = me.record.get(me.field)._type;
+            var store = me.record.getCollection(me.field);
+            
+            if ( this.grid ) { this.grid.destroy(); }
+            
+            store.load({
+                callback: function(records,operation,success) {
+                    me.grid = Ext.create('Rally.technicalservices.accessible.grid',{
+                        store: store,
+                        prefix: me.field,
+                        caption: 'Table of ' + me.fieldLabel,
+                        columns: me._table_columns[sub_type],
+                        listeners: {
+                            scope: me,
+                            afterrender: function() {
+                                //
+                                me.fireEvent('alert',this, "The table of " + me.fieldLabel + " is ready");
+                            }
+                        }
+                    });
+                    me.add(me.grid);
+                }
+            });
+            
+        }
      },
      getValue: function() {
         return this.textField.getValue();
      },
      getClearValue: function(value) {
         var cleaned_value = parseInt(value,10) || 0;
-        
-        console.log(typeof value);
         
         if ( typeof value === "object" ) {
             cleaned_value = value.Count;
