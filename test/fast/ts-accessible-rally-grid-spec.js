@@ -82,7 +82,6 @@ describe("Accessible Grid", function(){
             var html_node = grid.getEl().dom;
             var table_node = html_node.firstChild;
             expect(table_node.getAttribute('summary')).toEqual('Grid Title');
-            expect(table_node.firstChild.innerHTML).toEqual('Grid Title'); // caption
             var rows = Ext.dom.Query.select('TR',table_node);
             expect(rows.length).toEqual(3); // header + two data rows
             

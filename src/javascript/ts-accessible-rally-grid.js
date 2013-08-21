@@ -65,7 +65,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     renderTpl: [
         '<table border="1" cellspacing="1" cellpadding="1" summary="{summary}">',
-        '<caption>{caption}</caption>',
+        /* '<caption>{caption}</caption>', */
         '<thead><tr>',
         '<tpl for="columns">',
         '<th scope="col">{text}</th>',
