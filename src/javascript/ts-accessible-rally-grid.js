@@ -64,7 +64,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     },
     
     renderTpl: [
-        '<table border="1" cellspacing="1" cellpadding="1" summary="{summary}">',
+        '<table border="1" cellspacing="1" cellpadding="1" summary="{summary}" id="table-{tableId}" tabindex="0">',
         /* '<caption>{caption}</caption>', */
         '<thead><tr>',
         '<tpl for="columns">',
@@ -115,9 +115,6 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             if (me.editFieldName && datum.get(me.editFieldName) ) {
                 var text = datum.get(me.editFieldName);
                 datum.set('TitleText'," " + text);
-//                if ( text.length > 10 ) {
-//                    text = text.substring(0,9) + ' ...';
-//                }
                 text = "<span style='position: absolute !important;left: -10000px;overflow: hidden;'>"+ text + "</span>";
                 
                 datum.set('EditText',' ' + text);
@@ -129,7 +126,8 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             caption: this.caption || this.title,
             columns: this.columns,
             data: data,
-            showEdit: this.showEdit
+            showEdit: this.showEdit,
+            tableId: this.id
         }
     },
     /*
@@ -161,6 +159,8 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                 this._log("Adding Edit button for " + i + " (" + unique_id + ")");
                 Ext.get('button-' + unique_id + "-" + i).addListener('click', me._editButtonClickHandler, this, records[i]);
             }
+            Ext.get("table-" + this.id).focus();
+            
             var html_node = this.getEl().dom;
             var buttons = Ext.dom.Query.select('button',html_node);
             if ( buttons.length > 0 ) {
@@ -168,7 +168,9 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             }
         }
     },
-    
+    focus: function() {
+        Ext.get("table-" + this.id).focus();
+    },
     _editButtonClickHandler: function(extEventObject, buttonEl, record, eOpts) {
 //        var buttonId = buttonEl.id;
 //        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 );
