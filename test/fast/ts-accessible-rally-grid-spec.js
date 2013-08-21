@@ -194,5 +194,19 @@ describe("Accessible Grid", function(){
         });
         
         
+        it("should not supply buttons when showEdit = false", function(){
+                        grid = Ext.create('Rally.technicalservices.accessible.grid', {
+                renderTo: "componentTestArea",
+                store: simple_store,
+                showEdit: false,
+                columns: [
+                    {text:'Ref', dataIndex:'_ref'}
+                ]
+            });
+            var html_node = grid.getEl().dom;
+            var buttons = Ext.dom.Query.select('button',html_node);
+            expect(buttons.length).toEqual(0);
+            
+        });        
     });
 });

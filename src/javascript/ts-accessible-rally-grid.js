@@ -37,7 +37,14 @@ Ext.define('Rally.technicalservices.accessible.grid', {
          * @cfg {String} prefix
          * A prefix to add to the id of each button in the table
          */
-        prefix: null
+        prefix: null,
+        /**
+          * @cfg {Boolean} showEdit
+          * Whether to show the column with edit buttons
+          * 
+          * Defaults to true
+          */
+        showEdit: true
     },
     
     initComponent: function(){
@@ -63,7 +70,9 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         '<tpl for="columns">',
         '<th scope="col">{text}</th>',
         '</tpl>',
+        '<tpl if="showEdit">',
         '<th scope="col">Edit</th>',
+        '</tpl>',
         '</tr></thead>',
         '<tbody>',
             '<tpl for="data">',
@@ -80,7 +89,9 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                             '</td>',
                         '</tpl>',
                     '</tpl>',
+                    '<tpl if="parent.showEdit">',
                     '<td><button id="button-{data.ObjectID}-{#}">Edit{data.EditText}</button></td>',
+                    '</tpl>',
                 '</tr>',
             '</tpl>',
         '</tbody>',
@@ -117,7 +128,8 @@ Ext.define('Rally.technicalservices.accessible.grid', {
             summary: this.title,
             caption: this.caption || this.title,
             columns: this.columns,
-            data: data
+            data: data,
+            showEdit: this.showEdit
         }
     },
     /*
@@ -139,7 +151,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     
     afterRender: function() {
         var me = this;
-        if ( this.store ) {
+        if ( this.store && this.showEdit ) {
             var records = this.store.getRecords();
             for (var i=0; i<records.length; i++) {
                 var unique_id = "";

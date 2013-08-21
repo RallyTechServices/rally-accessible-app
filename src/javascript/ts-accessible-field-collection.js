@@ -88,6 +88,7 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                 callback: function(records,operation,success) {
                     me.grid = Ext.create('Rally.technicalservices.accessible.grid',{
                         store: store,
+                        showEdit: false,
                         prefix: me.field,
                         caption: 'Table of ' + me.fieldLabel,
                         columns: me._table_columns[sub_type],
