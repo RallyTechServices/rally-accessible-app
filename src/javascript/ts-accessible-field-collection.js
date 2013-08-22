@@ -87,6 +87,8 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
             store.load({
                 callback: function(records,operation,success) {
                     me.grid = Ext.create('Rally.technicalservices.accessible.grid',{
+                        title: 'Table of ' + sub_type + "s",
+                        caption: 'Table of ' + sub_type + "s",
                         store: store,
                         showEdit: false,
                         prefix: me.field,
@@ -97,6 +99,7 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                             afterrender: function() {
                                 //
                                 me.fireEvent('alert',this, "The table of " + me.fieldLabel + " is ready");
+                                me.grid.focus();
                             }
                         }
                     });

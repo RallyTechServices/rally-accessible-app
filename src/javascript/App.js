@@ -306,7 +306,7 @@ Ext.define('CustomApp', {
         
         this.grids[type] = Ext.create('Rally.technicalservices.accessible.grid',{
             store: store,
-            title: me.friendly_names[type] || type,
+            title: 'Table of ' + me.friendly_names[type] + "s",
             caption: 'Table of ' + me.friendly_names[type] + "s",
             columns: me.table_columns[type],
             editFieldName: 'Name',
@@ -566,7 +566,7 @@ Ext.define('CustomApp', {
             }
         }
         
-        if ( this._form_errors_area ) { _form_errors_area.destroy(); }
+        if ( this._form_errors_area ) { this._form_errors_area.destroy(); }
     },
     _log: function(msg) {
         window.console && console.log( this.self.getName(),' -- ', msg );  

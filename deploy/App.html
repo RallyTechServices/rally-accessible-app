@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Aug 21 2013 20:27:16 GMT-0700 (PDT) -->
+    <!--  Build Date: Wed Aug 21 2013 20:54:50 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -317,7 +317,7 @@ Ext.define('CustomApp', {
         
         this.grids[type] = Ext.create('Rally.technicalservices.accessible.grid',{
             store: store,
-            title: me.friendly_names[type] || type,
+            title: 'Table of ' + me.friendly_names[type] + "s",
             caption: 'Table of ' + me.friendly_names[type] + "s",
             columns: me.table_columns[type],
             editFieldName: 'Name',
@@ -577,7 +577,7 @@ Ext.define('CustomApp', {
             }
         }
         
-        if ( this._form_errors_area ) { _form_errors_area.destroy(); }
+        if ( this._form_errors_area ) { this._form_errors_area.destroy(); }
     },
     _log: function(msg) {
         window.console && console.log( this.self.getName(),' -- ', msg );  
@@ -971,6 +971,8 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
             store.load({
                 callback: function(records,operation,success) {
                     me.grid = Ext.create('Rally.technicalservices.accessible.grid',{
+                        title: 'Table of ' + sub_type + "s",
+                        caption: 'Table of ' + sub_type + "s",
                         store: store,
                         showEdit: false,
                         prefix: me.field,
@@ -981,6 +983,7 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                             afterrender: function() {
                                 //
                                 me.fireEvent('alert',this, "The table of " + me.fieldLabel + " is ready");
+                                me.grid.focus();
                             }
                         }
                     });
