@@ -172,9 +172,6 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         Ext.get("table-" + this.id).focus();
     },
     _editButtonClickHandler: function(extEventObject, buttonEl, record, eOpts) {
-//        var buttonId = buttonEl.id;
-//        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 );
-//        var recordToEdit = this.store.getAt(rowIndex);
         this._log("fired _editButtonClickHandler");
         this.fireEvent('recordeditclick', this, record);
      

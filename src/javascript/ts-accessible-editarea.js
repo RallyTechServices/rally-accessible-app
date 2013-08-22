@@ -87,6 +87,7 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
             var thisItem = {
                 record: me.record,
                 xtype: xtype,
+                dataIndex: me.fields[i].dataIndex,
                 fieldLabel: me.fields[i].text,
                 value: value,
                 itemId: "field_" + i,
@@ -149,6 +150,17 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
             this._log(this.items.getAt(next_idx));
             this.items.getAt(next_idx).focus(select_text);
         }
+    },
+    getFieldIdByName: function(name){
+        var me = this;
+        var result = null;
+        me.items.each( function(item){
+            if ( item.dataIndex === name ) {
+                result = item.id;
+            }
+        });
+        
+        return result;
     },
     _log: function(msg) {
         window.console && console.log( this.self.getName(),' -- ', msg );  

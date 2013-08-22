@@ -125,6 +125,24 @@ describe("Accessible Editor",function(){
             expect(combobox_fields.length).toEqual(1);
 
         });
+        
+        it("should get a field by field name",function(){
+            editor = Ext.create('Rally.technicalservices.accessible.editarea',{
+                renderTo: "componentTestArea",
+                fields: [
+                    {text:'The Ref', dataIndex:'_ref'},
+                    {text:'The Name', dataIndex:'Name', editor: 'rallytextfield'},
+                    {text:'Iteration',dataIndex:'Iteration',editor:'tsaccessiblecombobox'}
+                ],
+                record: simple_store.getRecords()[0]
+            });
+                        
+            var text_fields = editor.query('rallytextfield');
+            expect(editor.getFieldIdByName("Name")).toEqual(text_fields[1].id);
+            
+            var combobox_fields = editor.query('tsaccessiblecombobox');
+            expect(editor.getFieldIdByName("Iteration")).toEqual(combobox_fields[0].id);
+        });
     });
     
 });

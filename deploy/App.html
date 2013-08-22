@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Aug 20 2013 20:57:59 GMT-0700 (PDT) -->
+    <!--  Build Date: Wed Aug 21 2013 20:27:16 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -363,7 +363,7 @@ Ext.define('CustomApp', {
             listeners: {
                 buttonclick: function(editor,record,button) {
                     if ( button.text == "Save" ) {
-                        me._saveRecord(record);
+                        me._saveRecord(record,editor);
                     } else {
                         me._alert('Cancel pressed. Editor cleared.');
                         me.recordEditor.destroy();
@@ -383,7 +383,6 @@ Ext.define('CustomApp', {
     // hack because the html editor steals focus and won't give it back from tabbing
     // TODO: move this into the editor itself
     _moveToNextItem: function(component,shift_key_pressed) {
-        this._log(this);
         var direction = 1;
         if ( shift_key_pressed ) { direction = -1; }
         if (this.recordEditor) {
@@ -435,11 +434,10 @@ Ext.define('CustomApp', {
         }
     },
     
-    _saveRecord: function(record) {
+    _saveRecord: function(record,form) {
         this._log('_saveRecord');
         var me = this;
         me._alert("Saving Record.");
-        me._log(record);
         
         var selected_project_ref = me._projectSelector.getValue();
 
@@ -449,7 +447,6 @@ Ext.define('CustomApp', {
         
         items.each( function(item) {
             if (item.xtype !== "button" && item.getValue() && item.getValue() !== "-- No Entry --") {
-                me._log(item);
                 var field_name = item.field.name || item.field;
                 if (typeof record.set === 'function') {
                     record.set(field_name, item.getValue());
@@ -476,13 +473,99 @@ Ext.define('CustomApp', {
                     me._getItems(me._filters);
                 } else {
                     me._log(operation);
-                    alert("Could not save the record. The message from the server is: " +
+                    me._alert("Could not save the record. The message from the server is: " +
                         operation.error.errors[0] );
+                    me._handleErrorsFromForm(form,operation.error.errors);
                 }
             }
         });
+    },
+    _getFieldFromError: function(error_type, error_message) {
+        var me = this;
+        this._log(["_getFieldFromError",error_type,error_message]);
         
+        var field_name = null;
+        if (error_type === "Validation error"){
+            var dot_split = error_message.split('.');
+            if ( dot_split.length > 1 ) {
+                var space_split = dot_split[1].split(' ');
+                field_name = space_split[0];
+            } else {
+                field_name = dot_split[0];
+            }
+        } else if (error_type === "Could not convert") {
+            var quote_split = error_message.split('"');
+            if ( quote_split.length > 2 ) {
+                field_name = quote_split[1];
+            }
+        }
+        // fix fieldname if old one given in error message
+        if ( field_name === "Estimate" ) { field_name = "PlanEstimate"; }
+        me._log("Got " + field_name + " from " + error_message);
+        return field_name;
+    },
+    _handleErrorsFromForm: function(form,errors) {
+        var me = this;
+        me._log(["_handleErrorsFromForm",errors]);
+        
+        if ( this._form_errors_area ) { this._form_errors_area.destroy(); }
+        this._form_errors_area = this.add({xtype:'container',tabIndex:"0"});
+        var header = this._form_errors_area.add({xtype:'container',html:"<h2>Submission Errors</h2>"});
+        var error_resolution_list = [];
+        Ext.Array.each(errors,function(error){
+            var error_split = error.split(':');
 
+            if ( error_split.length < 2 ) {
+                error_resolution_list.push(error);
+            } else {
+                var error_type = error_split[0];
+                var error_message = error_split[1];
+                if ( error_type !== "Validation error" && error_type !== "Could not convert" ) {
+                    error_resolution_list.push(error_message);
+                } else {
+                    var ignore_error_fields = ["WorkProductName"];
+                    
+                    var field_name = me._getFieldFromError(error_type, error_message);
+                    if ( Ext.Array.indexOf(ignore_error_fields,field_name) === -1 ) {
+                        var field_id = form.getFieldIdByName(field_name);
+                        if ( field_id ) {
+                            error_resolution_list.push(
+                                '<a href="#' + field_id + '" id="' + field_id + '-link" tabindex="0">' + 
+                                error_message + 
+                                '</a>'
+                            );
+                        } else {
+                            error_resolution_list.push(error_message);
+                        }
+                    }
+                }
+            }
+        });
+        var data = { Errors: error_resolution_list };
+        var list = this._form_errors_area.add({
+            xtype:'container',
+            autoRender: true,
+            tpl:['<ul>',
+                '<tpl for="Errors">',
+                '<li tabindex="0">{.}</li>',
+                '</tpl>',
+                '</ul>'],
+            data:data
+        });
+        
+        var html_node = list.getEl().dom;
+        var links = Ext.dom.Query.select('a',html_node);
+        if (links.length > 0 ) {
+            links[0].focus(false);
+        }
+        Ext.Array.each(links, function(link){
+            Ext.get(link.id).addListener('click',me._focusOnFormElement,this,form);
+        });
+    },
+    _focusOnFormElement:function(event,link,form) {
+        var field_id = link.id.replace(/-link/,"");
+        Ext.get(field_id).focus(true);
+        return false;
     },
     _clearTargets: function() {
         if ( this.recordEditor ) {
@@ -493,6 +576,8 @@ Ext.define('CustomApp', {
                 if ( this.grids[i] ) { this.grids[i].destroy(); }
             }
         }
+        
+        if ( this._form_errors_area ) { _form_errors_area.destroy(); }
     },
     _log: function(msg) {
         window.console && console.log( this.self.getName(),' -- ', msg );  
@@ -718,6 +803,7 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
             var thisItem = {
                 record: me.record,
                 xtype: xtype,
+                dataIndex: me.fields[i].dataIndex,
                 fieldLabel: me.fields[i].text,
                 value: value,
                 itemId: "field_" + i,
@@ -780,6 +866,17 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
             this._log(this.items.getAt(next_idx));
             this.items.getAt(next_idx).focus(select_text);
         }
+    },
+    getFieldIdByName: function(name){
+        var me = this;
+        var result = null;
+        me.items.each( function(item){
+            if ( item.dataIndex === name ) {
+                result = item.id;
+            }
+        });
+        
+        return result;
     },
     _log: function(msg) {
         window.console && console.log( this.self.getName(),' -- ', msg );  
@@ -1820,9 +1917,6 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         Ext.get("table-" + this.id).focus();
     },
     _editButtonClickHandler: function(extEventObject, buttonEl, record, eOpts) {
-//        var buttonId = buttonEl.id;
-//        var rowIndex = parseInt( buttonId.replace(/^\D+/g, ''), 10 );
-//        var recordToEdit = this.store.getAt(rowIndex);
         this._log("fired _editButtonClickHandler");
         this.fireEvent('recordeditclick', this, record);
      
