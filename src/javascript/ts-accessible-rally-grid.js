@@ -101,10 +101,19 @@ Ext.define('Rally.technicalservices.accessible.grid', {
     renderTpl_past: [ '{html}'],
     
     getTemplateArgs: function() {
+        var me = this;
         var data = [];
         var me = this;
         if (this.store) {
             data = this.store.getRecords();
+            this._log(["table data",data]);
+            Ext.Array.each(data, function(datum){
+                if ( datum.get('Tasks') ) {
+                    var count_of_tasks = datum.get('Tasks').Count || 0;
+                    me._log(count_of_tasks);
+                    datum.set('Tasks',"" + count_of_tasks);
+                }
+            });
         }
         if ( data.length == 0 ) {
             this.renderTpl = "No records found";
@@ -173,7 +182,10 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         }
     },
     focus: function() {
-        Ext.get("table-" + this.id).focus();
+        var embedded_table = Ext.get("table-" + this.id);
+        if (embedded_table) {
+            embedded_table.focus();
+        }
     },
     _editButtonClickHandler: function(extEventObject, buttonEl, record, eOpts) {
         this._log("fired _editButtonClickHandler");

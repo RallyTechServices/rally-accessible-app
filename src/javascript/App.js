@@ -257,12 +257,16 @@ Ext.define('CustomApp', {
             }
         }
         
+        fetch_fields = me._getValueArrayFromArrayOfHashes(me.table_columns[type], "dataIndex");
+        me._log(["Fetching with",fetch_fields]);
+        
         var store = Ext.create('Rally.data.WsapiDataStore',{
             model: type,
             limit: me.table_size,
             pageSize: me.table_size,
             context: context,
             filters: filters,
+            fetch: fetch_fields,
             autoLoad:true,
             listeners: {
                 scope: this,
@@ -279,6 +283,7 @@ Ext.define('CustomApp', {
                 {text:'ID', dataIndex:'FormattedID'},
                 {text:'Name', dataIndex:'Name'},
                 {text:'Schedule State', dataIndex:'ScheduleState'},
+                {text:'Number of Tasks', dataIndex:'Tasks'},
                 {text:'Size', dataIndex:'PlanEstimate' }
             ],
             defect: [
@@ -286,6 +291,7 @@ Ext.define('CustomApp', {
                 {text:'Name', dataIndex:'Name'},
                 {text:'Schedule State', dataIndex:'ScheduleState'},
                 {text:'Defect State',dataIndex:'State'},
+                {text:'Number of Tasks', dataIndex:'Tasks'},
                 {text:'Size', dataIndex:'PlanEstimate' }
             ]
     },
@@ -295,6 +301,13 @@ Ext.define('CustomApp', {
         "userstory": "User Story",
         "hierarchicalrequirement":"User Story"
     },
+    _getValueArrayFromArrayOfHashes: function(hash_array,key){
+        var key_array = [];
+        Ext.Array.each( hash_array, function(hash){
+            key_array.push(hash[key]);
+        });
+        return key_array;
+    },
     /*
      * make a grid, given a store and the global grid we're talking about
      * (for story or defect grid)
@@ -303,7 +316,7 @@ Ext.define('CustomApp', {
         this._log("_makeGrid " + type);
         var me = this;
         if (this.grids[type]) { this.grids[type].destroy(); }
-        
+
         this.grids[type] = Ext.create('Rally.technicalservices.accessible.grid',{
             store: store,
             title: 'Table of ' + me.friendly_names[type] + "s",
