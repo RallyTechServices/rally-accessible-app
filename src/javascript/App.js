@@ -265,6 +265,12 @@ Ext.define('CustomApp', {
             limit: me.table_size,
             pageSize: me.table_size,
             context: context,
+            sorters: [
+                {
+                    property: 'ObjectID',
+                    direction: 'DESC'
+                }
+            ],
             filters: filters,
             fetch: fetch_fields,
             autoLoad:true,

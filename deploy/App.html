@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Aug 22 2013 20:51:48 GMT-0700 (PDT) -->
+    <!--  Build Date: Thu Aug 22 2013 20:53:37 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -276,6 +276,12 @@ Ext.define('CustomApp', {
             limit: me.table_size,
             pageSize: me.table_size,
             context: context,
+            sorters: [
+                {
+                    property: 'ObjectID',
+                    direction: 'DESC'
+                }
+            ],
             filters: filters,
             fetch: fetch_fields,
             autoLoad:true,
