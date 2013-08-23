@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Aug 21 2013 20:54:50 GMT-0700 (PDT) -->
+    <!--  Build Date: Thu Aug 22 2013 20:22:29 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -1907,7 +1907,11 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                 this._log("Adding Edit button for " + i + " (" + unique_id + ")");
                 Ext.get('button-' + unique_id + "-" + i).addListener('click', me._editButtonClickHandler, this, records[i]);
             }
-            Ext.get("table-" + this.id).focus();
+            
+            var embedded_table = Ext.get("table-" + this.id);
+            if (embedded_table) {
+                embedded_table.focus();
+            }
             
             var html_node = this.getEl().dom;
             var buttons = Ext.dom.Query.select('button',html_node);

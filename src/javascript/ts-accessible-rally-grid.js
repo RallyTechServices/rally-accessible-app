@@ -159,7 +159,11 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                 this._log("Adding Edit button for " + i + " (" + unique_id + ")");
                 Ext.get('button-' + unique_id + "-" + i).addListener('click', me._editButtonClickHandler, this, records[i]);
             }
-            Ext.get("table-" + this.id).focus();
+            
+            var embedded_table = Ext.get("table-" + this.id);
+            if (embedded_table) {
+                embedded_table.focus();
+            }
             
             var html_node = this.getEl().dom;
             var buttons = Ext.dom.Query.select('button',html_node);
