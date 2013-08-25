@@ -167,6 +167,69 @@ describe("Field Combobox",function(){
         });
         
     });
+    
+    it("should set owner on load when provided as data", function(){
+        var component_loaded = false;
+        var users = [];
+        var t=Ext.create('Rally.data.WsapiDataStore',{
+            model: 'User',
+            autoLoad: true,
+            filters: [{property:'UserName',operator:'contains',value:'@'}],
+            fetch: ['CreationDate'],
+            listeners: {
+                load: function(store,data,success){
+                    users = data;
+                    
+                    var test_user = {
+                        _ref: users[0].get('_ref'),
+                        _refObjectName: users[0].get('_refObjectName'),
+                        _type: "User"
+                    };
+                    cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
+                        listeners: { load: function() { component_loaded = true; } },
+                        renderTo: "componentTestArea",
+                        field: 'Owner',
+                        value: test_user
+                    });
+                }
+            }
+        });
+        
+        waitsFor(function(){ return component_loaded }, "Combobox never loaded");
+        runs(function() {
+            expect(cb.getValue()).toEqual(users[0].get('_ref'));
+        });
+        
+    });
+    
+    it("should set owner on load when provided as ref", function(){
+        var component_loaded = false;
+        var users = [];
+        var t=Ext.create('Rally.data.WsapiDataStore',{
+            model: 'User',
+            autoLoad: true,
+            filters: [{property:'UserName',operator:'contains',value:'@'}],
+            listeners: {
+                load: function(store,data,success){
+                    users = data;
+                    cb = Ext.create('Rally.technicalservices.accessible.combobox.FieldValueCombobox',{
+                        listeners: { load: function() { component_loaded = true; } },
+                        renderTo: "componentTestArea",
+                        fieldLabel: 'test',
+                        field: 'Owner',
+                        value: users[0].get("_ref")
+                    });
+                }
+            }
+        });
+        
+        waitsFor(function(){ return component_loaded }, "Combobox never loaded");
+        runs(function() {
+            expect(cb.getValue()).toEqual(users[0].get('_ref'));
+        });
+        
+    });
+    
     it("should display true/false for boolean fields", function(){
         var component_loaded = false;
 

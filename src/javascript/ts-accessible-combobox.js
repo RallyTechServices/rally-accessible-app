@@ -8,7 +8,7 @@
  Ext.define('Rally.technicalservices.accessible.Combobox', {
     extend: 'Ext.Component',
     alias: 'widget.tsaccessiblecombobox',
-    
+    logger: new Rally.technicalservices.logger(),
     // Default configuration parameters
     config: {
         store: null,        
@@ -39,6 +39,7 @@
         if ( this.componentId === null ) {
             this.componentId = "comboBox-" + this.valueField;
         }
+
     },
 
     renderTpl: [

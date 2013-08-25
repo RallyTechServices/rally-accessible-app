@@ -46,7 +46,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
           */
         showEdit: true
     },
-    
+    logger: new Rally.technicalservices.logger(),
     initComponent: function(){
         this.callParent();
         this.addEvents(
@@ -58,9 +58,6 @@ Ext.define('Rally.technicalservices.accessible.grid', {
              */
             'recordeditclick'
         );
-    },
-    _log: function(msg) {
-        window.console && console.log( this.self.getName(),' -- ', msg );  
     },
     
     renderTpl: [
@@ -106,11 +103,11 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         var me = this;
         if (this.store) {
             data = this.store.getRecords();
-            this._log(["table data",data]);
+            this.logger.log(this,["table data",data]);
             Ext.Array.each(data, function(datum){
                 if ( datum.get('Tasks') ) {
                     var count_of_tasks = datum.get('Tasks').Count || 0;
-                    me._log(count_of_tasks);
+                    me.logger.log(this,count_of_tasks);
                     datum.set('Tasks',"" + count_of_tasks);
                 }
             });
@@ -165,7 +162,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
                 if (records[i].get('ObjectID')) {
                     unique_id = records[i].get('ObjectID');
                 }
-                this._log("Adding Edit button for " + i + " (" + unique_id + ")");
+                this.logger.log(this,"Adding Edit button for " + i + " (" + unique_id + ")");
                 Ext.get('button-' + unique_id + "-" + i).addListener('click', me._editButtonClickHandler, this, records[i]);
             }
             
@@ -188,7 +185,7 @@ Ext.define('Rally.technicalservices.accessible.grid', {
         }
     },
     _editButtonClickHandler: function(extEventObject, buttonEl, record, eOpts) {
-        this._log("fired _editButtonClickHandler");
+        this.logger.log(this,"fired _editButtonClickHandler");
         this.fireEvent('recordeditclick', this, record);
      
     }

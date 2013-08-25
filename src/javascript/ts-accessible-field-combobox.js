@@ -50,7 +50,6 @@
         });
         
         this.store.on('load',this._onStoreLoad, this);
-        
         this.on('afterrender', this._onAfterRender, this);
 
         if (Ext.isString(this.model)) {
@@ -108,6 +107,12 @@
 
     _populateStore: function() {
         var me = this;
+        
+        this.logger.log(this,["field name:",this.fieldLabel]);
+        this.logger.log(this,["field:",this.field]);
+        this.logger.log(this,["initial value:",this.value]);
+        this.logger.log(this,["displayfield:",this.displayField,"valuefield:",this.valueField]);
+
         if ( this.field.allowedValueType ) {
             var modelType = this.field.allowedValueType._refObjectName;
 //            if ( this.field.allowedValueType._refObjectName == "User" ) {
@@ -116,6 +121,7 @@
             Ext.create('Rally.data.WsapiDataStore',{
                 model: modelType,
                 autoLoad: true,
+                limit: 1000,
                 context: this.context,
                 filters: [{property:'ObjectID',operator:'>',value:0}],
                 listeners: {

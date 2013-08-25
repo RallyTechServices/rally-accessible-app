@@ -1,6 +1,7 @@
 Ext.define('Rally.technicalservices.accessible.editarea',{
     extend: 'Ext.container.Container',
     alias: 'widget.tsaccessibleeditarea',
+    logger: new Rally.technicalservices.logger(),
     config: {
          /**
          * @cfg {Ext.data.Model} record
@@ -72,13 +73,13 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         var items = [];
         var value = "";
 
-        me._log(["record",me.record]);
+        me.logger.log(this,["record",me.record]);
         
         for (var i=0; i<me.fields.length; i++) {
             if ( me.record && typeof me.record.get === 'function') {
                 value = me.record.get(me.fields[i].dataIndex)
             }
-            me._log([me.fields[i].text,value]);
+            me.logger.log(this,[me.fields[i].text,value]);
             
             var xtype = 'rallytextfield';
             if ( me.fields[i].editor && typeof(me.fields[i].editor) == "string") {
@@ -106,7 +107,7 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         return items;
     },
     initItems : function() {
-        this._log("initItems");
+        this.logger.log(this,"initItems");
         var me = this,
             items = me.items;
 
@@ -145,9 +146,9 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         }
     },
     setFocusToItemNumber: function(next_idx,select_text){
-        this._log(["Moving to", next_idx]);
+        this.logger.log(this,["Moving to", next_idx]);
         if ( next_idx > -1 && next_idx < this.items.length ) {
-            this._log(this.items.getAt(next_idx));
+            this.logger.log(this,this.items.getAt(next_idx));
             this.items.getAt(next_idx).focus(select_text);
         }
     },
@@ -161,8 +162,5 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         });
         
         return result;
-    },
-    _log: function(msg) {
-        window.console && console.log( this.self.getName(),' -- ', msg );  
     }
 });
