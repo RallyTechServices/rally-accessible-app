@@ -149,7 +149,10 @@ Ext.define('CustomApp', {
             record_type = "Defect";
         }
         
-        default_values = {};
+        default_values = {
+            "SubmittedBy": me.getContext().getUser(),
+            "Project"    : me._projectSelector.getValue()
+        };
         
         me._alert("Preparing edit area to enter values for new item");
         
@@ -444,8 +447,6 @@ Ext.define('CustomApp', {
         var me = this;
         me._alert("Saving Record.");
         
-        var selected_project_ref = me._projectSelector.getValue();
-
         // TODO: have the editor return the new values
         var items = this.recordEditor.items;
         var item_hash = {};
@@ -463,8 +464,7 @@ Ext.define('CustomApp', {
         });
         
         if ( typeof record.set !== 'function') {
-            item_hash.Project =    item_hash.Project || selected_project_ref;
-            item_hash.SubmittedBy = item_hash.SubmittedBy || this.getContext().getUser();
+            item_hash = Ext.Object.merge(default_values,item_hash);
             record = Ext.create(record, item_hash);
         }
         
