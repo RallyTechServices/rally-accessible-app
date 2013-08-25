@@ -47,7 +47,14 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
               * @param {Rally.technicalservices.accessible.queryBox} this
               * @param {String} a message to put into the alert area
               */
-             'alert'
+             'alert',
+            /**
+              * @event replaceMe
+              * Fires when this edit area thinks it should be remade
+              * @param {Rally.technicalservices.accessible.editor} this
+              * @param {Ext.data.Model} Rally record 
+              */
+             'replaceMe'
         );
     },
     getTemplateArgs: function() {
@@ -96,6 +103,10 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
                     alert: function(that, message) {
                         // bubble up event
                         me.fireEvent('alert',that,message);
+                    },
+                    recordeditclick: function(that,recordToEdit){
+                        me.logger.log(me,["click",recordToEdit]);
+                        me.fireEvent('replaceMe',me,recordToEdit);
                     }
                 }
             };

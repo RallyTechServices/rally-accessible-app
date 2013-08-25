@@ -8,6 +8,7 @@
 Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
     extend: 'Ext.Container',
     alias: 'widget.tsaccessiblefieldcollectionbox',
+    logger: new Rally.technicalservices.logger(),
     /**
      * @cfg {String} fieldLabel
      * The label for the field.
@@ -45,7 +46,14 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
               * @param {Rally.technicalservices.accessible.queryBox} this
               * @param {String} a message to put into the alert area
               */
-             'alert'
+             'alert',
+             /**
+              * @event recordeditclick
+              * Fires when an edit button on one of the table lines is clicked
+              * @param {Rally.technicalservices.accessible.grid} the grid (bubbles up from the grid)
+              * @param {Ext.data.Model} Rally record for the selected row
+              */
+             'recordeditclick'
         );
         
         if ( ! /Count of /.test(me.fieldLabel) ) {
@@ -90,7 +98,7 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                         title: 'Table of ' + sub_type + "s",
                         caption: 'Table of ' + sub_type + "s",
                         store: store,
-                        showEdit: false,
+                        showEdit: true,
                         prefix: me.field,
                         caption: 'Table of ' + me.fieldLabel,
                         columns: me._table_columns[sub_type],
@@ -100,6 +108,10 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                                 //
                                 me.fireEvent('alert',this, "The table of " + me.fieldLabel + " is ready");
                                 me.grid.focus();
+                            },
+                            recordeditclick: function(g, recordToEdit) {
+                                me.logger.log(me,["click",recordToEdit]);
+                                me.fireEvent('recordeditclick',me.grid,recordToEdit);
                             }
                         }
                     });

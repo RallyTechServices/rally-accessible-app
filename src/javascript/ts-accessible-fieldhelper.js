@@ -29,10 +29,11 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
         field_order: ['FormattedID','Name','Description','PlanEstimate','ScheduleState','State','Iteration','Release'],
         app: null
     },
+    logger: new Rally.technicalservices.logger(),
     forbidden_fields: ["ObjectID","DisplayColor","LatestDiscussionAgeInMinutes",
         "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
         "Subscription","Workspace","Project","RevisionHistory","Blocker","DirectChildrenCount",
-        "Parent","PortfolioItem","Feature","Requirement",
+        "Parent","PortfolioItem","Feature","Requirement","WorkProduct",
         "Changesets","Discussion","Tags","Attachments","Children","Defects",
         "Successors","Predecessors","TestCases","Duplicates"],
         
@@ -45,6 +46,7 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
              * @param {Rally.technicalservices.accessible.FieldHelper} this
              */
             'load'
+             
         );
         this._getModelFields();
     },
