@@ -430,6 +430,7 @@ Ext.define('CustomApp', {
     _prepareForEditArea: function(record, default_values) {
         this.logger.log(this,["_prepareForEditArea",record,default_values]);
         var me = this;
+        me._alert("Preparing edit area");
         if (this.recordEditor) {
             this.recordEditor.destroy();
         }

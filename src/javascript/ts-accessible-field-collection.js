@@ -81,6 +81,16 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                 {text:'ID', dataIndex:'FormattedID'},
                 {text:'Name', dataIndex:'Name'},
                 {text:'State', dataIndex:'State'}
+            ],
+        "HierarchicalRequirement":  [
+                {text:'ID', dataIndex:'FormattedID'},
+                {text:'Name', dataIndex:'Name'},
+                {text:'State', dataIndex:'ScheduleState'}
+            ],
+        "Defect":  [
+                {text:'ID', dataIndex:'FormattedID'},
+                {text:'Name', dataIndex:'Name'},
+                {text:'State', dataIndex:'State'}
             ]
         
      },

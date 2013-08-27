@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Aug 25 2013 15:34:47 GMT-0700 (PDT) -->
+    <!--  Build Date: Mon Aug 26 2013 20:37:11 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -388,6 +388,16 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                 {text:'ID', dataIndex:'FormattedID'},
                 {text:'Name', dataIndex:'Name'},
                 {text:'State', dataIndex:'State'}
+            ],
+        "HierarchicalRequirement":  [
+                {text:'ID', dataIndex:'FormattedID'},
+                {text:'Name', dataIndex:'Name'},
+                {text:'State', dataIndex:'ScheduleState'}
+            ],
+        "Defect":  [
+                {text:'ID', dataIndex:'FormattedID'},
+                {text:'Name', dataIndex:'Name'},
+                {text:'State', dataIndex:'State'}
             ]
         
      },
@@ -407,6 +417,7 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                         store: store,
                         showEdit: true,
                         prefix: me.field,
+                        editFieldName: 'Name',
                         caption: 'Table of ' + me.fieldLabel,
                         columns: me._table_columns[sub_type],
                         listeners: {
@@ -728,7 +739,7 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
         "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
         "Subscription","Workspace","Project","RevisionHistory","Blocker","DirectChildrenCount",
         "Parent","PortfolioItem","Feature","Requirement","WorkProduct",
-        "Changesets","Discussion","Tags","Attachments","Children","Defects",
+        "Changesets","Discussion","Tags","Attachments","Defects","Children",
         "Successors","Predecessors","TestCases","Duplicates"],
         
     initComponent: function(){
@@ -1738,6 +1749,7 @@ Ext.define('CustomApp', {
      */
     _displayEditArea: function(record,default_values) {
         var me = this;
+        me._alert("Preparing edit area");
         me.logger.log(this,["display edit area with record:",record]);
         var new_field_array = [];
         var type = record.typePath;
@@ -1813,6 +1825,7 @@ Ext.define('CustomApp', {
     _prepareForEditArea: function(record, default_values) {
         this.logger.log(this,["_prepareForEditArea",record,default_values]);
         var me = this;
+        me._alert("Preparing edit area");
         if (this.recordEditor) {
             this.recordEditor.destroy();
         }

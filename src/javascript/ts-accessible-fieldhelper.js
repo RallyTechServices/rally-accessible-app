@@ -34,7 +34,7 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
         "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
         "Subscription","Workspace","Project","RevisionHistory","Blocker","DirectChildrenCount",
         "Parent","PortfolioItem","Feature","Requirement","WorkProduct",
-        "Changesets","Discussion","Tags","Attachments","Children","Defects",
+        "Changesets","Discussion","Tags","Attachments","Defects","Children",
         "Successors","Predecessors","TestCases","Duplicates"],
         
     initComponent: function(){
