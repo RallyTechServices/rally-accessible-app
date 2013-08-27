@@ -100,6 +100,7 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                         store: store,
                         showEdit: true,
                         prefix: me.field,
+                        editFieldName: 'Name',
                         caption: 'Table of ' + me.fieldLabel,
                         columns: me._table_columns[sub_type],
                         listeners: {

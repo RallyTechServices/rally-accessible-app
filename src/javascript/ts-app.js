@@ -354,6 +354,7 @@ Ext.define('CustomApp', {
      */
     _displayEditArea: function(record,default_values) {
         var me = this;
+        me._alert("Preparing edit area");
         me.logger.log(this,["display edit area with record:",record]);
         var new_field_array = [];
         var type = record.typePath;
