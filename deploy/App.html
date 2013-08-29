@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Aug 28 2013 20:55:24 GMT-0700 (PDT) -->
+    <!--  Build Date: Wed Aug 28 2013 21:57:03 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -186,6 +186,8 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
               */
              'replaceMe'
         );
+        
+
     },
     getTemplateArgs: function() {
         if ( this.fields.length == 0 ) {
@@ -210,40 +212,63 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         var items = [];
         var value = "";
 
+        this._isCreateForm = false;
+        if ( !this.record ) { 
+            this._isCreateForm = true;
+        }
+        if ( this.record && typeof this.record.get !== 'function') {
+            this._isCreateForm = true;
+        }
+        
         me.logger.log(this,["record",me.record]);
         
         for (var i=0; i<me.fields.length; i++) {
+            
             if ( me.record && typeof me.record.get === 'function') {
                 value = me.record.get(me.fields[i].dataIndex)
             }
             me.logger.log(this,[me.fields[i].text,value]);
-            
+            var editor = me.fields[i].editor;
+
             var xtype = 'rallytextfield';
-            if ( me.fields[i].editor && typeof(me.fields[i].editor) == "string") {
-                xtype = me.fields[i].editor;
+            if ( editor && typeof(editor) == "string") {
+                xtype = editor;
+            } else if ( editor && typeof(editor.xtype) == "string" ) {
+                xtype = editor.xtype;
             }
-            var thisItem = {
-                record: me.record,
-                xtype: xtype,
-                dataIndex: me.fields[i].dataIndex,
-                fieldLabel: me.fields[i].text,
-                value: value,
-                itemId: "field_" + i,
-                listeners: {
-                    alert: function(that, message) {
-                        // bubble up event
-                        me.fireEvent('alert',that,message);
-                    },
-                    recordeditclick: function(that,recordToEdit){
-                        me.logger.log(me,["click",recordToEdit]);
-                        me.fireEvent('replaceMe',me,recordToEdit);
+            
+            me.logger.log(this,[me._isCreateForm,xtype,editor]);
+
+            if ( me._isCreateForm && xtype === "tsaccessiblefieldcollectionbox" ) {
+                // skip this one (we don't want to see collections when creating new items)
+                me.logger.log(this,[me._isCreateForm,xtype,editor]);
+            } else {
+                var thisItem = {
+                    record: me.record,
+                    xtype: xtype,
+                    dataIndex: me.fields[i].dataIndex,
+                    fieldLabel: me.fields[i].text,
+                    value: value,
+                    itemId: "field_" + i,
+                    listeners: {
+                        alert: function(that, message) {
+                            // bubble up event
+                            me.fireEvent('alert',that,message);
+                        },
+                        recordeditclick: function(that,recordToEdit){
+                            me.logger.log(me,["click",recordToEdit]);
+                            me.fireEvent('replaceMe',me,recordToEdit);
+                        },
+                        recordaddclick: function(that) {
+                            me.fireEvent('replaceMe',me,null);
+                        }
                     }
+                };
+                if ( editor && typeof(editor != "string") ) {
+                    Ext.merge(thisItem,editor);
                 }
-            };
-            if ( me.fields[i].editor && typeof(me.fields[i].editor != "string") ) {
-                Ext.merge(thisItem,me.fields[i].editor);
+                items.push(thisItem);
             }
-            items.push(thisItem);
         }
         return items;
     },
@@ -340,13 +365,6 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
         var me = this;
         me.callParent();
         me.addEvents(
-            /**
-             * @event buttonpressed
-             * Fires when the field's store has been loaded
-             * @param {Rally.technicalservices.accessible.FieldValueCollection} this
-             * @param {Rally.ui.Button} button
-             */
-            'buttonpressed',
              /**
               * @event alert
                * Fires when the table of children has been loaded
@@ -360,7 +378,13 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
               * @param {Rally.technicalservices.accessible.grid} the grid (bubbles up from the grid)
               * @param {Ext.data.Model} Rally record for the selected row
               */
-             'recordeditclick'
+             'recordeditclick',
+             /**
+              * @event recordaddclick
+              * Fires when the add button is clicked
+              * @param {Rally.ui.Button} The button
+              */
+             'recordaddclick'
         );
         
         if ( ! /Count of /.test(me.fieldLabel) ) {
@@ -374,12 +398,20 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
             readOnly: me.readOnly,
             value: me.value
         });
-        
+
         me.viewButton = me.add({
             xtype: 'button',
             text: 'View ' + me.field,
             buttonLabel : 'View ' + me.field,
             handler: me._viewButtonPressed,
+            scope: me
+        });
+        
+        me.addButton = me.add({
+            xtype: 'button',
+            text: 'Add ' + me.field,
+            buttonLabel : 'Add ' + me.field,
+            handler: me._addButtonPressed,
             scope: me
         });
      },
@@ -400,6 +432,9 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                 {text:'State', dataIndex:'State'}
             ]
         
+     },
+     _addButtonPressed: function(button) {
+        this.fireEvent('recordaddclick',button);
      },
      _viewButtonPressed: function(button) {
         var me = this;
@@ -1532,7 +1567,7 @@ Ext.define('CustomApp', {
                 "Focus should be on the Get My Stories button, which is after the project selector combo box.");
 
     },
-    _createItem: function(button) {
+    _createItem: function(button,record_type,incoming_default_values) {
         var me = this;
         this.logger.log(this,"_createItem");
         this._clearTargets();
@@ -1540,9 +1575,12 @@ Ext.define('CustomApp', {
         var selected_project_ref = me._projectSelector.getValue();
         var selected_project_name = me._projectSelector.getDisplayValue();
         
-        var record_type = "UserStory";
-        if ( button.buttonLabel == "Create Defect") {
-            record_type = "Defect";
+        if (typeof record_type !== "string" || ! record_type ) {
+            if ( button.buttonLabel == "Create Defect") {
+                record_type = "Defect";
+            } else {
+                record_type = "UserStory";
+            }
         }
         
         var default_values = {
@@ -1550,8 +1588,11 @@ Ext.define('CustomApp', {
             "Project"    : me._projectSelector.getValue()
         };
         
+        var outgoing_default_values = Ext.Object.merge(default_values,incoming_default_values);
+        
         me._alert("Preparing edit area to enter values for new item");
         
+        me.logger.log(this,record_type);
         Rally.data.ModelFactory.getModel({
             type: record_type,
             success: function(model) {
@@ -1563,7 +1604,7 @@ Ext.define('CustomApp', {
                         load: function() {
                             me.logger.log(this,"Loaded " + record_type + " field helper");
                             me.return_message_array = []; // fill with message from each of the queries
-                            me._prepareForEditArea(model,default_values);
+                            me._prepareForEditArea(model,outgoing_default_values);
                         }
                     }
                 });
@@ -1780,27 +1821,33 @@ Ext.define('CustomApp', {
                     me._alert(message);
                 },
                 replaceMe: function(editor,recordToEdit){
-                    me.logger.log(this,"Gonna redraw the edit area");
-                    var record_type = recordToEdit.typePath;
-                    if ( !record_type ) {
-                        record_type = recordToEdit.get('_type');
-                    }
-                    var selected_project_ref = me._projectSelector.getValue();
-                    var clean_type = me.official_names[record_type.toLowerCase()];
-
-                    me.logger.log(this,"about to make a fieldhelper for " + clean_type);
-                    me.field_helpers[clean_type] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
-                        modelType:record_type,
-                        app: me,
-                        project: selected_project_ref,
-                        listeners: {
-                            load: function() {
-                                me.logger.log(this,"Loaded " + record_type + " field helper");
-                                me.return_message_array = []; // fill with message from each of the queries
-                                me._prepareForEditArea(recordToEdit,{});
-                            }
+                    me.logger.log(this,["Gonna redraw the edit area",recordToEdit]);
+                    
+                    if ( !recordToEdit ) {
+                        // hit the add button
+                        me._createItem(null,"Task",{ WorkProduct: record.get('_ref') } );
+                    } else {
+                        var record_type = recordToEdit.typePath;
+                        if ( !record_type ) {
+                            record_type = recordToEdit.get('_type');
                         }
-                    });
+                        var selected_project_ref = me._projectSelector.getValue();
+                        var clean_type = me.official_names[record_type.toLowerCase()];
+    
+                        me.logger.log(this,"about to make a fieldhelper for " + clean_type);
+                        me.field_helpers[clean_type] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
+                            modelType:record_type,
+                            app: me,
+                            project: selected_project_ref,
+                            listeners: {
+                                load: function() {
+                                    me.logger.log(this,"Loaded " + record_type + " field helper");
+                                    me.return_message_array = []; // fill with message from each of the queries
+                                    me._prepareForEditArea(recordToEdit,{});
+                                }
+                            }
+                        });
+                    }
                 }
             }
         });

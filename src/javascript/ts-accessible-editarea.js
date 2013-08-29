@@ -56,6 +56,8 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
               */
              'replaceMe'
         );
+        
+
     },
     getTemplateArgs: function() {
         if ( this.fields.length == 0 ) {
@@ -80,43 +82,63 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
         var items = [];
         var value = "";
 
+        this._isCreateForm = false;
+        if ( !this.record ) { 
+            this._isCreateForm = true;
+        }
+        if ( this.record && typeof this.record.get !== 'function') {
+            this._isCreateForm = true;
+        }
+        
         me.logger.log(this,["record",me.record]);
         
         for (var i=0; i<me.fields.length; i++) {
+            
             if ( me.record && typeof me.record.get === 'function') {
                 value = me.record.get(me.fields[i].dataIndex)
             }
             me.logger.log(this,[me.fields[i].text,value]);
-            
+            var editor = me.fields[i].editor;
+
             var xtype = 'rallytextfield';
-            if ( me.fields[i].editor && typeof(me.fields[i].editor) == "string") {
-                xtype = me.fields[i].editor;
+            if ( editor && typeof(editor) == "string") {
+                xtype = editor;
+            } else if ( editor && typeof(editor.xtype) == "string" ) {
+                xtype = editor.xtype;
             }
-            var thisItem = {
-                record: me.record,
-                xtype: xtype,
-                dataIndex: me.fields[i].dataIndex,
-                fieldLabel: me.fields[i].text,
-                value: value,
-                itemId: "field_" + i,
-                listeners: {
-                    alert: function(that, message) {
-                        // bubble up event
-                        me.fireEvent('alert',that,message);
-                    },
-                    recordeditclick: function(that,recordToEdit){
-                        me.logger.log(me,["click",recordToEdit]);
-                        me.fireEvent('replaceMe',me,recordToEdit);
-                    },
-                    recordaddclick: function(that) {
-                        me.fireEvent('replaceMe',me,null);
+            
+            me.logger.log(this,[me._isCreateForm,xtype,editor]);
+
+            if ( me._isCreateForm && xtype === "tsaccessiblefieldcollectionbox" ) {
+                // skip this one (we don't want to see collections when creating new items)
+                me.logger.log(this,[me._isCreateForm,xtype,editor]);
+            } else {
+                var thisItem = {
+                    record: me.record,
+                    xtype: xtype,
+                    dataIndex: me.fields[i].dataIndex,
+                    fieldLabel: me.fields[i].text,
+                    value: value,
+                    itemId: "field_" + i,
+                    listeners: {
+                        alert: function(that, message) {
+                            // bubble up event
+                            me.fireEvent('alert',that,message);
+                        },
+                        recordeditclick: function(that,recordToEdit){
+                            me.logger.log(me,["click",recordToEdit]);
+                            me.fireEvent('replaceMe',me,recordToEdit);
+                        },
+                        recordaddclick: function(that) {
+                            me.fireEvent('replaceMe',me,null);
+                        }
                     }
+                };
+                if ( editor && typeof(editor != "string") ) {
+                    Ext.merge(thisItem,editor);
                 }
-            };
-            if ( me.fields[i].editor && typeof(me.fields[i].editor != "string") ) {
-                Ext.merge(thisItem,me.fields[i].editor);
+                items.push(thisItem);
             }
-            items.push(thisItem);
         }
         return items;
     },

@@ -145,14 +145,13 @@ Ext.define('CustomApp', {
         var selected_project_ref = me._projectSelector.getValue();
         var selected_project_name = me._projectSelector.getDisplayValue();
         
-        if (! record_type ) {
+        if (typeof record_type !== "string" || ! record_type ) {
             if ( button.buttonLabel == "Create Defect") {
                 record_type = "Defect";
             } else {
                 record_type = "UserStory";
             }
         }
-        
         
         var default_values = {
             "SubmittedBy": me.getContext().getUser(),
@@ -163,6 +162,7 @@ Ext.define('CustomApp', {
         
         me._alert("Preparing edit area to enter values for new item");
         
+        me.logger.log(this,record_type);
         Rally.data.ModelFactory.getModel({
             type: record_type,
             success: function(model) {
