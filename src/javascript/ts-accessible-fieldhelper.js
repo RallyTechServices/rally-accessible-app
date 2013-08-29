@@ -33,7 +33,7 @@ Ext.define('Rally.technicalservices.accessible.FieldHelper',{
     forbidden_fields: ["ObjectID","DisplayColor","LatestDiscussionAgeInMinutes",
         "DragAndDropRank","Recycled","TaskActualTotal","TaskEstimateTotal","TaskRemainingTotal","TaskStatus",
         "Subscription","Workspace","Project","RevisionHistory","Blocker","DirectChildrenCount",
-        "Parent","PortfolioItem","Feature","Requirement","WorkProduct",
+        "TaskIndex","Parent","PortfolioItem","Feature","Requirement","WorkProduct",
         "Changesets","Discussion","Tags","Attachments","Defects","Children",
         "Successors","Predecessors","TestCases","Duplicates"],
         
