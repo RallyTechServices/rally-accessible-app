@@ -542,7 +542,7 @@ Ext.define('CustomApp', {
         me.logger.log(this,["_handleErrorsFromForm",errors]);
         
         if ( this._form_errors_area ) { this._form_errors_area.destroy(); }
-        this._form_errors_area = this.add({xtype:'container',tabIndex:"0"});
+        this._form_errors_area = this.down('#editor_box').insert(1,{xtype:'container',tabIndex:"0"});
         var header = this._form_errors_area.add({xtype:'container',html:"<h2>Submission Errors</h2>"});
         var error_resolution_list = [];
         Ext.Array.each(errors,function(error){

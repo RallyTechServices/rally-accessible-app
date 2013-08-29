@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Aug 26 2013 20:37:11 GMT-0700 (PDT) -->
+    <!--  Build Date: Wed Aug 28 2013 19:38:17 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -1937,7 +1937,7 @@ Ext.define('CustomApp', {
         me.logger.log(this,["_handleErrorsFromForm",errors]);
         
         if ( this._form_errors_area ) { this._form_errors_area.destroy(); }
-        this._form_errors_area = this.add({xtype:'container',tabIndex:"0"});
+        this._form_errors_area = this.down('#editor_box').insert(1,{xtype:'container',tabIndex:"0"});
         var header = this._form_errors_area.add({xtype:'container',html:"<h2>Submission Errors</h2>"});
         var error_resolution_list = [];
         Ext.Array.each(errors,function(error){
