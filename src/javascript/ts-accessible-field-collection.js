@@ -33,13 +33,6 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
         var me = this;
         me.callParent();
         me.addEvents(
-            /**
-             * @event buttonpressed
-             * Fires when the field's store has been loaded
-             * @param {Rally.technicalservices.accessible.FieldValueCollection} this
-             * @param {Rally.ui.Button} button
-             */
-            'buttonpressed',
              /**
               * @event alert
                * Fires when the table of children has been loaded
@@ -53,7 +46,13 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
               * @param {Rally.technicalservices.accessible.grid} the grid (bubbles up from the grid)
               * @param {Ext.data.Model} Rally record for the selected row
               */
-             'recordeditclick'
+             'recordeditclick',
+             /**
+              * @event recordaddclick
+              * Fires when the add button is clicked
+              * @param {Rally.ui.Button} The button
+              */
+             'recordaddclick'
         );
         
         if ( ! /Count of /.test(me.fieldLabel) ) {
@@ -67,12 +66,20 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
             readOnly: me.readOnly,
             value: me.value
         });
-        
+
         me.viewButton = me.add({
             xtype: 'button',
             text: 'View ' + me.field,
             buttonLabel : 'View ' + me.field,
             handler: me._viewButtonPressed,
+            scope: me
+        });
+        
+        me.addButton = me.add({
+            xtype: 'button',
+            text: 'Add ' + me.field,
+            buttonLabel : 'Add ' + me.field,
+            handler: me._addButtonPressed,
             scope: me
         });
      },
@@ -93,6 +100,9 @@ Ext.define('Rally.technicalservices.accessible.FieldValueCollection',{
                 {text:'State', dataIndex:'State'}
             ]
         
+     },
+     _addButtonPressed: function(button) {
+        this.fireEvent('recordaddclick',button);
      },
      _viewButtonPressed: function(button) {
         var me = this;

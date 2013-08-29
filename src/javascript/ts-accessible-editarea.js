@@ -107,6 +107,9 @@ Ext.define('Rally.technicalservices.accessible.editarea',{
                     recordeditclick: function(that,recordToEdit){
                         me.logger.log(me,["click",recordToEdit]);
                         me.fireEvent('replaceMe',me,recordToEdit);
+                    },
+                    recordaddclick: function(that) {
+                        me.fireEvent('replaceMe',me,null);
                     }
                 }
             };

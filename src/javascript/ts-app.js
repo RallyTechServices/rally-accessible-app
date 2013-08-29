@@ -76,6 +76,7 @@ Ext.define('CustomApp', {
     _onProjectStoreLoaded: function(store, data) {
         var me = this;
         Ext.get('alert_area').set({role:'alert'});
+        Ext.get('alert_area').set({"aria-live":"polite"});
         this._alert("The application is loading.");
         me.field_helpers = {};
         
@@ -136,7 +137,7 @@ Ext.define('CustomApp', {
                 "Focus should be on the Get My Stories button, which is after the project selector combo box.");
 
     },
-    _createItem: function(button) {
+    _createItem: function(button,record_type,incoming_default_values) {
         var me = this;
         this.logger.log(this,"_createItem");
         this._clearTargets();
@@ -144,15 +145,21 @@ Ext.define('CustomApp', {
         var selected_project_ref = me._projectSelector.getValue();
         var selected_project_name = me._projectSelector.getDisplayValue();
         
-        var record_type = "UserStory";
-        if ( button.buttonLabel == "Create Defect") {
-            record_type = "Defect";
+        if (! record_type ) {
+            if ( button.buttonLabel == "Create Defect") {
+                record_type = "Defect";
+            } else {
+                record_type = "UserStory";
+            }
         }
+        
         
         var default_values = {
             "SubmittedBy": me.getContext().getUser(),
             "Project"    : me._projectSelector.getValue()
         };
+        
+        var outgoing_default_values = Ext.Object.merge(default_values,incoming_default_values);
         
         me._alert("Preparing edit area to enter values for new item");
         
@@ -167,7 +174,7 @@ Ext.define('CustomApp', {
                         load: function() {
                             me.logger.log(this,"Loaded " + record_type + " field helper");
                             me.return_message_array = []; // fill with message from each of the queries
-                            me._prepareForEditArea(model,default_values);
+                            me._prepareForEditArea(model,outgoing_default_values);
                         }
                     }
                 });
@@ -384,27 +391,33 @@ Ext.define('CustomApp', {
                     me._alert(message);
                 },
                 replaceMe: function(editor,recordToEdit){
-                    me.logger.log(this,"Gonna redraw the edit area");
-                    var record_type = recordToEdit.typePath;
-                    if ( !record_type ) {
-                        record_type = recordToEdit.get('_type');
-                    }
-                    var selected_project_ref = me._projectSelector.getValue();
-                    var clean_type = me.official_names[record_type.toLowerCase()];
-
-                    me.logger.log(this,"about to make a fieldhelper for " + clean_type);
-                    me.field_helpers[clean_type] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
-                        modelType:record_type,
-                        app: me,
-                        project: selected_project_ref,
-                        listeners: {
-                            load: function() {
-                                me.logger.log(this,"Loaded " + record_type + " field helper");
-                                me.return_message_array = []; // fill with message from each of the queries
-                                me._prepareForEditArea(recordToEdit,{});
-                            }
+                    me.logger.log(this,["Gonna redraw the edit area",recordToEdit]);
+                    
+                    if ( !recordToEdit ) {
+                        // hit the add button
+                        me._createItem(null,"Task",{ WorkProduct: record.get('_ref') } );
+                    } else {
+                        var record_type = recordToEdit.typePath;
+                        if ( !record_type ) {
+                            record_type = recordToEdit.get('_type');
                         }
-                    });
+                        var selected_project_ref = me._projectSelector.getValue();
+                        var clean_type = me.official_names[record_type.toLowerCase()];
+    
+                        me.logger.log(this,"about to make a fieldhelper for " + clean_type);
+                        me.field_helpers[clean_type] = Ext.create('Rally.technicalservices.accessible.FieldHelper',{
+                            modelType:record_type,
+                            app: me,
+                            project: selected_project_ref,
+                            listeners: {
+                                load: function() {
+                                    me.logger.log(this,"Loaded " + record_type + " field helper");
+                                    me.return_message_array = []; // fill with message from each of the queries
+                                    me._prepareForEditArea(recordToEdit,{});
+                                }
+                            }
+                        });
+                    }
                 }
             }
         });

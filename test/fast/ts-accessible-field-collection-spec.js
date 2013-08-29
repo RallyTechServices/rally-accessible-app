@@ -30,9 +30,11 @@ describe("Field Collection Summary",function(){
         expect(labels.length).toEqual(1);
         expect(inputs.length).toEqual(1);
         expect(labels[0].getAttribute("for")).toEqual(inputs[0].id);
-        expect(buttons.length).toEqual(1);
-        var button_text = Ext.dom.Query.select('span',buttons[0]);
-        expect(button_text[0].innerHTML).toEqual("View Tasks");
+        expect(buttons.length).toEqual(2);
+        var view_button_text = Ext.dom.Query.select('span',buttons[0]);
+        expect(view_button_text[0].innerHTML).toEqual("View Tasks");
+        var add_button_text = Ext.dom.Query.select('span',buttons[1]);
+        expect(add_button_text[0].innerHTML).toEqual("Add Tasks");
         
     });
     

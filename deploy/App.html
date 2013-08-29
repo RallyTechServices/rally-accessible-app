@@ -3,7 +3,7 @@
 <head>
     <title>Accessible App</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Aug 28 2013 19:38:17 GMT-0700 (PDT) -->
+    <!--  Build Date: Wed Aug 28 2013 20:55:24 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -1471,6 +1471,7 @@ Ext.define('CustomApp', {
     _onProjectStoreLoaded: function(store, data) {
         var me = this;
         Ext.get('alert_area').set({role:'alert'});
+        Ext.get('alert_area').set({"aria-live":"polite"});
         this._alert("The application is loading.");
         me.field_helpers = {};
         
